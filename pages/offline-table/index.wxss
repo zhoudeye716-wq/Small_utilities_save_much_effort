@@ -1,0 +1,60 @@
+.table-page { height: 100vh; padding: 8rpx 30rpx; display: flex; flex-direction: column; overflow: hidden; background: #071b12; }
+.menu-backdrop { position: fixed; z-index: 19; top: 0; right: 0; bottom: 0; left: 0; }
+.table-menu { position: fixed; z-index: 20; }
+.menu-trigger { padding: 7rpx 14rpx; border: 1rpx solid rgba(197, 223, 200, .28); border-radius: 10rpx; color: #e3eee3; background: #193b2a; font-size: 17rpx; font-weight: 700; white-space: nowrap; }
+.menu-list { position: absolute; right: 0; top: 100%; width: 155rpx; margin-top: 6rpx; padding: 5rpx; border: 1rpx solid rgba(197, 223, 200, .2); border-radius: 12rpx; color: #e6eee3; background: #173629; box-shadow: 0 8rpx 24rpx rgba(0,0,0,.4); }
+.menu-list view { padding: 11rpx 13rpx; border-bottom: 1rpx solid rgba(197, 223, 200, .1); font-size: 16rpx; white-space: nowrap; }
+.menu-list view:last-child { border-bottom: 0; color: #f3d68c; }
+.table-scene { position: relative; flex: 1; min-height: 0; }
+.oval-table { position: absolute; left: 11%; right: 11%; top: 13%; bottom: 13%; border: 7rpx solid #42935f; border-radius: 80rpx; background: radial-gradient(ellipse at center, #126b3a, #0a4b2a 72%, #08351f); box-shadow: inset 0 0 24rpx rgba(0, 0, 0, .32); }
+.player-seat { position: absolute; z-index: 2; width: 92rpx; min-height: 62rpx; padding: 4rpx; display: flex; align-items: center; justify-content: center; border: 3rpx solid #9eaea1; border-radius: 14rpx; color: #16251c; background: #f2f1df; box-shadow: 0 3rpx 8rpx rgba(0,0,0,.28); }
+.player-seat.dealer { background: #e98a2f; border-color: #b65b20; color: #fff; }
+.player-seat.small-blind { background: #d8eaff; border-color: #6193be; color: #162b3a; }
+.player-seat.big-blind { background: #ffddcd; border-color: #c57958; color: #402117; }
+.player-seat.dealer.small-blind { border-color: #b65b20; }
+.player-seat.current { box-shadow: 0 0 0 5rpx #e9d35f, 0 0 17rpx rgba(241,218,87,.65); }
+.player-seat.selected { box-shadow: 0 0 0 5rpx #4ad7bc, 0 0 17rpx rgba(74,215,188,.65); }
+.player-seat.folded { opacity: .5; background: #89958a; }
+.seat-content { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; line-height: 1.15; text-align: center; }
+.seat-name { font-size: 11rpx; font-weight: 700; white-space: nowrap; }
+.seat-stack { margin: 2rpx 0; padding: 2rpx 5rpx; border-radius: 4rpx; color: #8cf0d2; background: #12382b; font-size: 13rpx; font-weight: 800; white-space: nowrap; }
+.seat-bet { padding: 2rpx 5rpx; border-radius: 4rpx; color: #ffe083; background: #51441c; font-size: 11rpx; font-weight: 700; white-space: nowrap; }
+.control-center { position: absolute; z-index: 1; left: 50%; top: 50%; width: 49%; height: 50%; transform: translate(-50%, -50%); border: 2rpx solid rgba(190, 220, 196, .18); border-radius: 16rpx; background: rgba(4, 24, 14, .92); }
+.control-content { padding: 6rpx 10rpx 8rpx; line-height: 1.15; }
+.pot-header { display: flex; align-items: baseline; justify-content: center; gap: 8rpx; }
+.pot-label, .pot-stage { color: #9ebca6; font-size: 14rpx; }
+.pot-value { color: #f0d35c; font-size: 23rpx; font-weight: 800; }
+.current-line { display: flex; justify-content: space-between; margin: 4rpx 0; color: #c7e3cd; font-size: 14rpx; font-weight: 700; }
+.chip-buttons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5rpx; }
+.chip-buttons button { width: 100%; min-width: 0; min-height: 26rpx; border: 1rpx solid rgba(192, 219, 197, .2); border-radius: 7rpx; background: #274735; color: #ecedd7; font-size: 13rpx; font-weight: 700; line-height: 1.15; }
+.chip-buttons .allin-button { color: #f3ca7a; background: #51432a; }
+.bet-line { display: flex; align-items: center; gap: 6rpx; margin: 4rpx 0; color: #b0cdb8; font-size: 13rpx; }
+.bet-amount { display: flex; flex: 1; min-width: 0; align-items: center; gap: 4rpx; white-space: nowrap; }
+.bet-amount input { width: 52rpx; height: 23rpx; padding: 2rpx 4rpx; border-radius: 5rpx; color: #f0d35c; background: #233e2b; font-size: 14rpx; font-weight: 700; text-align: center; }
+.bet-line button { flex: none; width: auto; padding: 5rpx 9rpx; border-radius: 7rpx; color: #b8d0bd; background: #274735; font-size: 13rpx; line-height: 1.15; }
+.bet-line .bet-button { color: #fff; background: #208c75; }
+.action-buttons { display: flex; gap: 6rpx; }
+.action-buttons button { flex: 1; width: 0; min-height: 27rpx; border-radius: 8rpx; font-size: 14rpx; font-weight: 700; line-height: 1.15; }
+.fold-button { color: #f2a2a1; background: #603c38; }
+.call-button { color: #f4f4e4; background: #258967; }
+.table-message { padding-top: 5rpx; color: #9cb8a4; font-size: 12rpx; line-height: 1.35; }
+.mode-hint { display: flex; align-items: center; justify-content: space-between; gap: 8rpx; margin: 5rpx 0; padding: 5rpx 7rpx; border-radius: 6rpx; color: #86e0c8; background: #1a4f3e; font-size: 13rpx; }
+.mode-hint button, .pot-row button { flex: none; width: auto; padding: 4rpx 8rpx; border-radius: 6rpx; color: #fff; background: #298b74; font-size: 13rpx; line-height: 1.15; white-space: nowrap; }
+.settlement-hint { margin: 5rpx 0; color: #bfddc7; font-size: 13rpx; line-height: 1.35; }
+.pot-row { display: flex; align-items: center; justify-content: space-between; gap: 5rpx; padding: 5rpx 0; border-bottom: 1rpx solid rgba(200,220,200,.1); }
+.pot-row-name, .pot-row-status { display: block; }
+.pot-row-name { color: #ecd979; font-size: 15rpx; font-weight: 700; }
+.pot-row-status { margin-top: 2rpx; color: #a6c5ad; font-size: 11rpx; }
+.confirm-button { margin-top: 7rpx; padding: 7rpx; border-radius: 8rpx; color: #fff; background: #258967; font-size: 14rpx; font-weight: 700; }
+
+/* Let the playing controls use the available height while keeping settlement scrollable. */
+.control-content.playing { min-height: 100%; display: flex; flex-direction: column; justify-content: space-evenly; gap: 3px; }
+.pot-label, .pot-stage, .current-line { font-size: clamp(12px, 2.4vh, 20px); }
+.pot-value { font-size: clamp(20px, 4vh, 32px); }
+.chip-buttons button { min-height: clamp(34px, 7vh, 52px); font-size: clamp(13px, 2.5vh, 20px); }
+.bet-line { font-size: clamp(12px, 2.2vh, 18px); }
+.bet-amount input { height: clamp(28px, 5.5vh, 44px); font-size: clamp(13px, 2.4vh, 20px); }
+.bet-line button { min-height: clamp(34px, 6.5vh, 48px); font-size: clamp(12px, 2.2vh, 18px); }
+.action-buttons button { min-height: clamp(38px, 7.5vh, 56px); font-size: clamp(13px, 2.5vh, 20px); }
+.table-message { font-size: clamp(11px, 2vh, 16px); }
+.chip-buttons button, .bet-line button, .action-buttons button { display: flex; align-items: center; justify-content: center; }

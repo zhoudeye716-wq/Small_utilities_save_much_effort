@@ -1,0 +1,5 @@
+.guide-page { padding: 28rpx; }
+.guide-card { padding: 34rpx; }
+.guide-heading { font-size: 34rpx; font-weight: 800; margin-bottom: 24rpx; }
+.guide-item { display: flex; flex-direction: column; gap: 12rpx; margin: 24rpx 0; color: #abc0b0; font-size: 27rpx; line-height: 1.75; }
+.guide-item .gold { font-size: 29rpx; font-weight: 700; }

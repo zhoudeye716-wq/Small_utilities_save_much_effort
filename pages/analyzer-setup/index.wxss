@@ -1,0 +1,18 @@
+.setup-page { padding: 34rpx 42rpx 60rpx; background: #082616; min-height: 100vh; }
+.section-label { text-align: right; font-size: 26rpx; color: #8ccfb4; }
+.guide-hero { min-height: 0; padding: 20rpx 0 30rpx; margin-bottom: 20rpx; text-align: center; background: transparent; border: 0; }
+.guide-icon { display: block; font-size: 82rpx; }
+.guide-title { margin-top: 12rpx; font-size: 40rpx; font-weight: 800; letter-spacing: 5rpx; }
+.form-row { margin: 0 0 30rpx; }
+.form-label { color: #a7c2ae; font-size: 28rpx; margin-bottom: 12rpx; }
+.ratio-inputs { display: flex; align-items: center; gap: 26rpx; }
+.ratio-inputs .field-input { flex: 1; width: 0; min-width: 0; text-align: center; font-size: 38rpx; font-weight: 700; }
+.ratio-colon { font-size: 46rpx; }
+.stacked .field-input { font-size: 36rpx; }
+.participants { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
+.participants .form-label { flex: none; margin: 0; white-space: nowrap; }
+.stepper { display: flex; flex: none; align-items: center; gap: 22rpx; }
+.step-button { display: flex; flex: 0 0 76rpx; width: 76rpx; height: 76rpx; align-items: center; justify-content: center; border-radius: 20rpx; background: rgba(218, 231, 211, .1); font-size: 40rpx; font-weight: 700; }
+.step-value { min-width: 45rpx; text-align: center; font-size: 36rpx; font-weight: 700; }
+.enter-button { width: 70%; margin: 42rpx auto 20rpx; }
+.text-link { display: block; color: #86cbb7; font-size: 28rpx; padding: 16rpx; }

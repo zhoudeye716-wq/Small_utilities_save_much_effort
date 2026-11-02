@@ -1,0 +1,53 @@
+<view class="analyzer-page">
+  <view class="panel selection-panel">
+    <view class="panel-title row-between"><text>🃏 选牌</text><text class="muted small" bindtap="showExample">示例</text></view>
+    <view class="slot-label">初始牌</view>
+    <view class="cards-row">
+      <view class="card-slot" data-slot="hand-0" bindtap="selectSlot"><text wx:if="{{!hand[0]}}">?</text><text wx:else style="color:{{hand[0].color}}">{{hand[0].rank}}{{hand[0].symbol}}</text></view>
+      <view class="card-slot" data-slot="hand-1" bindtap="selectSlot"><text wx:if="{{!hand[1]}}">?</text><text wx:else style="color:{{hand[1].color}}">{{hand[1].rank}}{{hand[1].symbol}}</text></view>
+    </view>
+    <view class="slot-label">共享牌</view>
+    <view class="cards-row board-row">
+      <view class="card-slot" wx:for="{{board}}" wx:key="index" data-slot="board-{{index}}" bindtap="selectSlot"><text wx:if="{{!item}}">＋</text><text wx:else style="color:{{item.color}}">{{item.rank}}{{item.symbol}}</text></view>
+    </view>
+  </view>
+
+  <view class="panel deck-panel">
+    <view class="panel-title">选择卡片 <text class="muted small">{{slotLabel}}</text></view>
+    <view class="deck-grid">
+      <view wx:for="{{deck}}" wx:key="key" class="deck-card {{item.selected ? 'selected' : ''}}" data-card="{{item.key}}" bindtap="chooseCard">
+        <text style="color:{{item.color}}">{{item.rank}}</text><text style="color:{{item.color}}">{{item.symbol}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel table-panel">
+    <view class="panel-title">🎯 桌面（时期：{{stageLabel}}）</view>
+    <view class="oval-table">
+      <view class="table-center"><text>底池 {{pot}}</text><text class="table-hint">点选座位设置庄家</text></view>
+      <view wx:for="{{seats}}" wx:key="index" class="seat {{item.dealer ? 'dealer' : ''}} {{item.folded ? 'folded' : ''}}" style="left:{{item.left}}%;top:{{item.top}}%" data-index="{{index}}" bindtap="setDealer">
+        <text class="seat-role">{{item.role}}</text><text class="seat-stack">{{item.stack}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel parameters-panel">
+    <view class="panel-title">⚙ 参数</view>
+    <view class="parameter-row"><text>累积池</text><input class="field-input compact-input" type="digit" value="{{pot}}" data-key="pot" bindinput="onNumericInput" placeholder="数量(单位)" /></view>
+    <view class="chips-row"><button wx:for="{{increments}}" wx:key="*this" data-key="pot" data-amount="{{item}}" bindtap="addAmount">+{{item}}</button></view>
+    <view class="parameter-row"><text>匹配额</text><input class="field-input compact-input" type="digit" value="{{match}}" data-key="match" bindinput="onNumericInput" placeholder="需匹配额度(0=无需)" /></view>
+    <view class="chips-row"><button wx:for="{{increments}}" wx:key="*this" data-key="match" data-amount="{{item}}" bindtap="addAmount">+{{item}}</button></view>
+    <view class="parameter-row"><text>持有</text><input class="field-input compact-input" type="digit" value="{{held}}" data-key="held" bindinput="onNumericInput" /></view>
+    <view class="parameter-row"><text>持续</text><switch checked="{{continuous}}" color="#22a994" bindchange="toggleContinuous" /></view>
+  </view>
+
+  <view wx:if="{{analysisMessage}}" class="analysis-note">{{analysisMessage}}</view>
+  <view class="muted small analysis-caption">胜率为本地随机模拟估算，按底池赔率给出行动倾向</view>
+  <button class="primary-button analyze-button" bindtap="getAnalysis">📊 获取决策分析</button>
+  <view class="bottom-actions">
+    <button class="loss-button" bindtap="recordLoss">× 本局输</button>
+    <button class="clear-button" bindtap="clearRound">清空</button>
+    <button class="win-button" bindtap="recordWin">🏆 本局赢</button>
+  </view>
+  <view class="result-count muted">已记录：{{wins}} 胜 / {{losses}} 负</view>
+</view>

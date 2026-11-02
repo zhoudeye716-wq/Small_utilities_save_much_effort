@@ -1,0 +1,12 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-11-02-wechat-miniapp-recovery.md
+
+Ruling: Workspace is empty and has no Git metadata, so implement in place without initializing Git; there is no main branch or existing work to isolate.
+Ruling: Do not add automated tests because the user asked for an importable recovered project, not test development; use JSON/JS syntax checks and inspect the project structure instead.
+Pre-flight: Task 2 consumes app/page routing from Task 1; Task 3 also consumes Task 1 navigation; Task 4 wraps storage used by Tasks 2 and 3. Implement tasks in order.
+
+Ruling: Apply standard Texas Hold'em blind order, action progression, four betting streets, minimum full raise, fold handling, manual showdown winner selection, and automatic next-hand behavior evidenced by the user guide. Preserve dealer position across automatic next hands; the explicit "新一局" action resets all stacks.
+Ruling: The offline table currently does not model all-in/side-pot settlement; the guide explains that players must top up before an insufficient call. The analyzer now uses standard hand ranking plus randomized opponent simulations and pot odds; it labels output as a local estimate, not recovered original AI.
+Progress: Rebuilt native app pages, settings, analyzer card picker and local equity estimate, local persistence, offline table engine, guides, and import documentation. Final static checks passed: JavaScript syntax for 12 files, JSON parsing for 10 files, and configured mini-program root exists. WeChat DevTools visual import/preview remains for the user.
+
+Follow-up: The user clarified that offline play means a physical deck with one phone shared by all players. The later implementation supersedes the earlier no-all-in ruling: it supports all-in, side pots, ties, uncalled returns, and between-hand chip top-ups. Same-eligibility pots are merged before splitting and winner choices are checked across pots. Settings and table pages preserve an existing hand unless changed settings are explicitly confirmed. WeChat DevTools simulator screenshots were used for layout review; its automator runtime reported a timeout, so page actions were checked through local tests instead.
+Verification: 27 local tests passed, including regression cases for pot splitting and safe integer bounds. The changed WXML and WXSS files compiled through WeChat DevTools, and screenshots were reviewed for the home, setup, and landscape table. On-device gameplay remains unverified.

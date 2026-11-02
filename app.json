@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/analyzer-setup/index",
+    "pages/analyzer/index",
+    "pages/analyzer-guide/index",
+    "pages/offline-setup/index",
+    "pages/offline-guide/index",
+    "pages/offline-table/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "小工具省更多",
+    "navigationBarBackgroundColor": "#17632f",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#071e14",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

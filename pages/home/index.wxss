@@ -1,0 +1,33 @@
+.home-page {
+  min-height: 100vh;
+  padding: 50rpx 34rpx 48rpx;
+  color: #eef0f9;
+  background: linear-gradient(180deg, #111a2c 0%, #15223b 100%);
+}
+.hero { text-align: center; padding: 48rpx 0 58rpx; }
+.hero-title { font-size: 54rpx; font-weight: 800; letter-spacing: 4rpx; }
+.hero-subtitle { margin-top: 18rpx; color: #8898b1; font-size: 26rpx; letter-spacing: 3rpx; }
+.tool-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24rpx; }
+.tool-card {
+  min-height: 430rpx;
+  padding: 34rpx 18rpx 26rpx;
+  border: 2rpx solid rgba(193, 206, 226, .12);
+  border-radius: 32rpx;
+  text-align: center;
+  background: rgba(151, 167, 198, .08);
+}
+.tool-card.disabled { min-height: 340rpx; opacity: .52; }
+.tool-icon {
+  display: flex; width: 120rpx; height: 120rpx; margin: 0 auto 24rpx;
+  border-radius: 30rpx; align-items: center; justify-content: center;
+  background: rgba(111, 130, 160, .12); font-size: 62rpx;
+}
+.tool-icon.playing { background: linear-gradient(145deg, #137744, #075234); }
+.tool-icon.club { color: #e6e4be; background: linear-gradient(145deg, #345a28, #223f1d); }
+.tool-name { font-size: 31rpx; font-weight: 700; }
+.tool-desc { min-height: 78rpx; margin-top: 14rpx; color: #a0aec3; font-size: 22rpx; line-height: 1.6; }
+.tags { display: flex; justify-content: center; gap: 8rpx; margin-top: 18rpx; }
+.tags text { padding: 6rpx 12rpx; border-radius: 12rpx; color: #89dacd; background: rgba(34, 168, 150, .24); font-size: 20rpx; font-weight: 700; white-space: nowrap; }
+.tags text:nth-child(2) { color: #c2a9ef; background: rgba(132, 88, 192, .32); }
+.tags text:nth-child(3) { color: #e6ca6a; background: rgba(169, 126, 26, .32); }
+.home-footer { margin-top: 56rpx; color: #7888a1; text-align: center; font-size: 23rpx; letter-spacing: 2rpx; }

@@ -1,0 +1,26 @@
+<view class="home-page">
+  <view class="hero">
+    <view class="hero-title">小工具省更多</view>
+    <view class="hero-subtitle">小巧 · 顺手 · 不费脑</view>
+  </view>
+  <view class="tool-grid">
+    <view class="tool-card active" bindtap="openAnalyzer">
+      <view class="tool-icon playing">🃏</view>
+      <view class="tool-name">扑克决策助手</view>
+      <view class="tool-desc"><view>德州牌力估算 · 底池赔率</view><view>筹码记录</view></view>
+      <view class="tags"><text>牌力</text><text>模拟</text><text>记录</text></view>
+    </view>
+    <view class="tool-card active" bindtap="openOffline">
+      <view class="tool-icon club">♣</view>
+      <view class="tool-name">线下围坐</view>
+      <view class="tool-desc"><view>一副牌 · 一部手机</view><view>围坐记筹码和底池</view></view>
+      <view class="tags"><text>桌面</text><text>线下</text></view>
+    </view>
+    <view class="tool-card disabled" wx:for="{{comingSoon}}" wx:key="title">
+      <view class="tool-icon">{{item.icon}}</view>
+      <view class="tool-name">{{item.title}}</view>
+      <view class="tool-desc">敬请期待...</view>
+    </view>
+  </view>
+  <view class="home-footer">所有工具 · 随心搭配</view>
+</view>

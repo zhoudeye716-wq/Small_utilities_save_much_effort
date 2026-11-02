@@ -1,0 +1,33 @@
+<view class="page setup-page">
+  <view class="section-label" bindtap="openGuide">使用指南 ›</view>
+  <view class="guide-hero panel">
+    <text class="guide-icon">🃏</text>
+    <view class="guide-title">卡牌决策分析</view>
+  </view>
+
+  <view class="form-row">
+    <view class="form-label">比率</view>
+    <view class="ratio-inputs">
+      <input class="field-input" type="digit" value="{{settings.smallBlind}}" data-key="smallBlind" bindinput="onInput" />
+      <text class="gold ratio-colon">:</text>
+      <input class="field-input" type="digit" value="{{settings.bigBlind}}" data-key="bigBlind" bindinput="onInput" />
+    </view>
+  </view>
+  <view class="form-row stacked">
+    <view class="form-label">总持有</view>
+    <input class="field-input" type="digit" value="{{settings.totalChips}}" data-key="totalChips" bindinput="onInput" />
+  </view>
+  <view class="form-row stacked">
+    <view class="form-label">单价</view>
+    <input class="field-input" type="digit" value="{{settings.unitPrice}}" data-key="unitPrice" bindinput="onInput" />
+  </view>
+  <view class="form-row participants">
+    <view class="form-label">参与人数</view>
+    <view class="stepper">
+      <view class="step-button" bindtap="decreasePlayers" aria-role="button" aria-label="减少人数">−</view>
+      <text class="step-value">{{settings.players}}</text>
+      <view class="step-button" bindtap="increasePlayers" aria-role="button" aria-label="增加人数">＋</view>
+    </view>
+  </view>
+  <button class="primary-button enter-button" bindtap="enterAnalyzer">进入</button>
+</view>

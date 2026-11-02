@@ -1,0 +1,15 @@
+<view class="page guide-page">
+  <view class="panel guide-card">
+    <view class="guide-heading">📋 设置页</view>
+    <view class="guide-item"><text class="gold">盲注与筹码</text><text>准备一副实体扑克牌，设置小盲、大盲、每人初始筹码和人数（2–9 人），将设备横放在桌子中间。开始新局会替换已保存的牌局；也可以选择继续上一局。</text></view>
+  </view>
+  <view class="panel guide-card">
+    <view class="guide-heading">🎯 围坐操作</view>
+    <view class="guide-item"><text class="gold">1 · 设置座位</text><text>每人坐在自己的 P 号座位外侧。第一轮行动前可在右上角菜单选择“设置庄家”，再点座位；小盲、大盲会自动下注。绿色显示持有筹码，黄色显示本局已投入的筹码。</text></view>
+    <view class="guide-item"><text class="gold">2 · 当前玩家行动</text><text>黄色光圈表示当前玩家。点“自动跟注”会补足当前应跟的筹码；无需跟注时为过牌，筹码不足时投入剩余筹码并全下。要下注或加注时，先点筹码数额，再点“确认下注”；所选数额包含当前应跟的筹码。也可点“弃牌”或选择“全下”。</text></view>
+    <view class="guide-item"><text class="gold">3 · 发实体牌与结算</text><text>根据翻牌、转牌、河牌提示发实体公共牌。下注结束后自行比牌；如果有多个底池，分别选择各池赢家，同一池可多选平分。</text></view>
+    <view class="guide-item"><text class="gold">4 · 补筹码与新局</text><text>只剩一位玩家时自动结算。结算后保留庄家位置并开始下一局；可在菜单中选择“补充筹码”或“重置牌桌”。重置会将所有筹码恢复初始值。</text></view>
+    <view class="guide-item"><text class="gold">5 · 返回与继续</text><text>在菜单中选择“返回设置”并确认，当前牌局会保留；未确认的下注不会保存。下次可在设置页选择“继续上一局”。</text></view>
+    <view class="guide-item"><text class="gold">位置标签规则</text><text>6人：D / SB / BB / UTG / MP / CO；7人加入 HJ；8人加入 UTG+1；9人再加入 MP+1。人数更少时依次减少 CO 端位置。</text></view>
+  </view>
+</view>

@@ -1,0 +1,4 @@
+{
+  "desc": "小工具省更多 sitemap",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

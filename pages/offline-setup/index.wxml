@@ -1,0 +1,15 @@
+<view class="page offline-setup-page">
+  <view class="panel setup-panel">
+    <view class="row-between"><view class="panel-title">⚙ 牌桌设置</view><text class="teal guide-link" bindtap="openGuide">使用指南</text></view>
+    <view class="setup-intro">一副实体扑克牌，一部手机记录筹码与底池。</view>
+    <view class="setting-row"><text>小盲(SB)</text><input class="field-input" type="digit" value="{{settings.smallBlind}}" data-key="smallBlind" bindinput="onInput" /></view>
+    <view class="setting-row"><text>大盲(BB)</text><input class="field-input" type="digit" value="{{settings.bigBlind}}" data-key="bigBlind" bindinput="onInput" /></view>
+    <view class="setting-row"><text>每人初始筹码</text><input class="field-input" type="number" value="{{settings.totalChips}}" data-key="totalChips" bindinput="onInput" /></view>
+    <view class="setting-row"><text>单价（记录用）</text><input class="field-input" type="digit" value="{{settings.unitPrice}}" data-key="unitPrice" bindinput="onInput" /></view>
+    <view class="setting-row players-row"><text>人数</text><view class="stepper"><view class="step-button" bindtap="decreasePlayers" aria-role="button" aria-label="减少人数">−</view><text class="step-value">{{settings.players}}</text><view class="step-button" bindtap="increasePlayers" aria-role="button" aria-label="增加人数">＋</view></view></view>
+    <view class="setup-actions">
+      <view class="primary-button enter-table" bindtap="enterTable" aria-role="button">开始新局</view>
+      <view wx:if="{{hasSavedTable}}" class="continue-table" bindtap="continueTable" aria-role="button">继续上一局</view>
+    </view>
+  </view>
+</view>

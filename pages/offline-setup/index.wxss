@@ -1,0 +1,15 @@
+.offline-setup-page { padding: 34rpx; }
+.setup-panel { padding: 36rpx; border-radius: 32rpx; background: rgba(24, 48, 35, .82); }
+.panel-title { font-size: 36rpx; margin: 0; }
+.guide-link { font-size: 26rpx; }
+.setup-intro { margin: 18rpx 0 24rpx; color: #9db8a5; font-size: 24rpx; line-height: 1.5; }
+.setting-row { min-height: 126rpx; display: flex; align-items: center; justify-content: space-between; gap: 14rpx; border-bottom: 2rpx solid rgba(203, 222, 204, .08); color: #a9c1ad; font-size: 28rpx; }
+.setting-row .field-input { width: 43%; text-align: right; font-size: 32rpx; }
+.players-row { border-bottom: 0; }
+.stepper { display: flex; flex: none; align-items: center; gap: 22rpx; }
+.step-button { display: flex; flex: 0 0 76rpx; width: 76rpx; height: 76rpx; align-items: center; justify-content: center; border-radius: 20rpx; background: rgba(218, 231, 211, .1); font-size: 40rpx; font-weight: 700; }
+.step-value { min-width: 48rpx; text-align: center; font-size: 42rpx; font-weight: 700; }
+.setup-actions { display: flex; gap: 16rpx; margin: 48rpx 0 10rpx; }
+.setup-actions view { display: flex; flex: 1; align-items: center; justify-content: center; min-width: 0; min-height: 88rpx; border-radius: 22rpx; font-size: 29rpx; font-weight: 700; white-space: nowrap; }
+.enter-table { margin: 0; background: linear-gradient(110deg, #25865a, #176d48); }
+.continue-table { color: #bee5d4; border: 2rpx solid rgba(120, 202, 170, .4); background: #254b39; }
