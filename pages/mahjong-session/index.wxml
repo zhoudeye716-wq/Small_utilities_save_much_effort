@@ -1,0 +1,81 @@
+<view wx:if="{{session}}" class="session-page">
+  <view class="session-header">
+    <view class="header-top"><view><view class="eyebrow">麻将清算</view><view class="session-title" bindtap="renameSession">{{session.title}} <text class="edit-hint">✎</text></view></view><view class="player-link" data-tab="players" bindtap="setTab">玩家与组合</view></view>
+    <view class="header-meta"><text>{{session.players.length}} 位玩家 · {{session.rounds.length}} 轮</text><view class="price-control"><text>每点 ¥</text><input type="digit" value="{{session.price}}" bindinput="changePrice" /></view></view>
+    <view wx:if="{{saveFailed}}" class="save-warning">保存失败，请检查设备存储后继续操作。</view>
+  </view>
+
+  <view class="tabs"><view class="tab {{tab === 'rounds' ? 'selected' : ''}}" data-tab="rounds" bindtap="setTab">记点数</view><view class="tab {{tab === 'fees' ? 'selected' : ''}}" data-tab="fees" bindtap="setTab">台费</view><view class="tab {{tab === 'settlement' ? 'selected' : ''}}" data-tab="settlement" bindtap="setTab">清算</view></view>
+
+  <block wx:if="{{tab === 'players'}}">
+    <view class="section-heading"><view><view class="section-title">玩家与组合</view><view class="section-caption">加入新玩家、设置昵称和组合 · 当前{{currentRoundLabel}}</view></view><view class="text-action" data-tab="rounds" bindtap="setTab">返回记点数</view></view>
+    <view class="panel">
+      <view wx:for="{{playerViews}}" wx:for-item="player" wx:key="id" class="player-item">
+        <view class="player-name-row"><view class="player-name" data-id="{{player.id}}" bindtap="renamePlayer">{{player.name}} <text class="edit-hint">✎</text></view><view class="group-change" data-id="{{player.id}}" bindtap="openGroupPicker">{{player.groupLabel}}　更改 ›</view></view>
+        <view class="attendance-controls"><view class="active-control"><text>今天在场</text><switch checked="{{player.active}}" data-id="{{player.id}}" bindchange="toggleActive" color="#31aa86" style="transform:scale(.75);transform-origin:right center" /></view><view class="active-control"><text>本小轮上场</text><switch checked="{{player.inRound}}" disabled="{{!expandedRoundId}}" data-id="{{player.id}}" bindchange="toggleCurrentRound" color="#31aa86" style="transform:scale(.75);transform-origin:right center" /></view></view>
+      </view>
+      <button class="outline-button" bindtap="addPlayer">＋ 添加玩家</button>
+      <view class="help-text">“今天在场”用于选择新一轮和新台费的默认人员；“本小轮上场”对应当前展开的一轮。改变在场状态不会删除此前记录。</view>
+    </view>
+    <view class="panel"><view class="panel-heading"><text>组合</text><text class="text-action" bindtap="addGroup">＋ 添加组合</text></view>
+      <view wx:if="{{!groupViews.length}}" class="help-text">可选：将需要一起收付的玩家加入同一组合。</view>
+      <view wx:for="{{groupViews}}" wx:for-item="group" wx:for-index="groupIndex" wx:key="id" class="group-row"><view><view class="group-name">{{group.name}}</view><view class="help-text">{{group.members}}</view></view><view class="group-actions"><text class="text-action" data-index="{{groupIndex}}" bindtap="renameGroup">改名</text><text class="danger-link" data-id="{{group.id}}" bindtap="removeGroup">删除</text></view></view>
+    </view>
+  </block>
+
+  <block wx:elif="{{tab === 'rounds'}}">
+    <view class="section-heading"><view><view class="section-title">每轮点数</view><view class="section-caption">点击玩家可选择是否参与当轮</view></view><view class="text-action" data-tab="players" bindtap="setTab">管理玩家</view></view>
+    <view wx:if="{{!roundViews.length}}" class="empty-panel">还没有牌局记录，点击下方添加一轮。</view>
+    <view wx:for="{{roundViews}}" wx:for-item="round" wx:for-index="roundIndex" wx:key="id" class="panel record-panel">
+      <view class="panel-heading" data-id="{{round.id}}" bindtap="openRound"><view>第 {{round.number}} 轮 <text class="status {{round.valid ? 'ok' : 'pending'}}">{{round.valid ? '已核对' : '待核对'}}</text></view><text class="chevron">{{expandedRoundId === round.id ? '展开' : '查看 ›'}}</text></view>
+      <block wx:if="{{expandedRoundId === round.id}}">
+        <view class="field-row"><text>每人初始点数</text><input class="input compact" type="number" value="{{round.initial}}" data-index="{{roundIndex}}" data-key="initial" bindinput="updateRound" placeholder="50" /></view>
+        <view class="help-text">填写结束点数；点「正 / 负」切换负数。</view>
+        <view wx:for="{{round.rows}}" wx:for-item="row" wx:key="id" class="entry-row">
+          <view class="participant" data-index="{{roundIndex}}" data-id="{{row.id}}" bindtap="toggleRoundPlayer"><text class="check {{row.selected ? 'checked' : ''}}">{{row.selected ? '✓' : '＋'}}</text><text>{{row.name}}</text></view>
+          <block wx:if="{{row.selected}}"><text class="delta">{{row.delta}}</text><view class="sign-button {{row.negative ? 'is-negative' : ''}}" data-index="{{roundIndex}}" data-id="{{row.id}}" bindtap="toggleScoreSign" role="button" aria-label="切换正负">{{row.negative ? '负 −' : '正 ＋'}}</view><input class="input score-input" type="number" value="{{row.value}}" data-index="{{roundIndex}}" data-id="{{row.id}}" bindinput="updateScore" placeholder="点数" /></block><text wx:else class="help-text">未参与</text>
+        </view>
+        <view class="validation {{round.valid ? 'valid' : 'invalid'}}">{{round.message}}</view>
+        <view class="record-actions"><text class="help-text">输入自动保存</text><text class="danger-link" data-index="{{roundIndex}}" bindtap="removeRound">删除本轮</text></view>
+      </block>
+    </view>
+    <button class="primary-action" bindtap="addRound">＋ 记录下一轮</button>
+  </block>
+
+  <block wx:elif="{{tab === 'fees'}}">
+    <view class="section-heading"><view><view class="section-title">台费记录</view><view class="section-caption">多笔费用分别记录垫付和分摊</view></view></view>
+    <view wx:if="{{!feeViews.length}}" class="empty-panel">还没有台费，点击下方添加。</view>
+    <view wx:for="{{feeViews}}" wx:for-item="fee" wx:for-index="feeIndex" wx:key="id" class="panel record-panel">
+      <view class="panel-heading" data-id="{{fee.id}}" bindtap="openFee"><view>第 {{fee.number}} 笔 <text class="status {{fee.valid ? 'ok' : 'pending'}}">{{fee.valid ? '已核对' : '待核对'}}</text></view><text class="chevron">{{fee.amount ? '¥' + fee.amount : '填写金额'}}　{{expandedFeeId === fee.id ? '展开' : '查看 ›'}}</text></view>
+      <block wx:if="{{expandedFeeId === fee.id}}">
+        <view class="field-row"><text>台费总额（元）</text><input class="input compact" type="digit" value="{{fee.amount}}" data-index="{{feeIndex}}" bindinput="updateFeeAmount" placeholder="请输入" /></view>
+        <view class="field-row" data-index="{{feeIndex}}" bindtap="openPayerPicker"><text>谁垫付</text><text class="picker-value">{{fee.payerName}} ›</text></view>
+        <view class="mode-label">选择分摊人</view><view class="help-text">点击昵称选择；垫付人也可以不分摊。</view>
+        <view class="mode-toggle"><view class="mode {{fee.mode === 'equal' ? 'selected' : ''}}" data-index="{{feeIndex}}" data-mode="equal" bindtap="setFeeMode">平均分摊</view><view class="mode {{fee.mode === 'custom' ? 'selected' : ''}}" data-index="{{feeIndex}}" data-mode="custom" bindtap="setFeeMode">手动分摊</view></view>
+        <view wx:for="{{fee.rows}}" wx:for-item="row" wx:key="id" class="entry-row"><view class="participant" data-index="{{feeIndex}}" data-id="{{row.id}}" bindtap="toggleFeePlayer"><text class="check {{row.selected ? 'checked' : ''}}">{{row.selected ? '✓' : '＋'}}</text><text>{{row.name}}</text></view><block wx:if="{{row.selected}}"><input wx:if="{{fee.mode === 'custom'}}" class="input fee-input" type="digit" value="{{row.value}}" data-index="{{feeIndex}}" data-id="{{row.id}}" bindinput="updateShare" placeholder="金额" /><text wx:else class="fee-value">{{row.value ? '¥' + row.value : '待计算'}}</text></block><text wx:else class="help-text">不分摊</text></view>
+        <view class="validation {{fee.valid ? 'valid' : 'invalid'}}">{{fee.message}}</view>
+        <view class="record-actions"><text class="help-text">输入自动保存</text><text class="danger-link" data-index="{{feeIndex}}" bindtap="removeFee">删除本笔</text></view>
+      </block>
+    </view>
+    <button class="primary-action" bindtap="addFee">＋ 添加一笔台费</button>
+  </block>
+
+  <block wx:elif="{{tab === 'settlement'}}">
+    <view class="section-heading"><view><view class="section-title">对局清算</view><view class="section-caption">逐人看输赢，按组合计算转账</view></view></view>
+    <view wx:if="{{!summary.valid}}" class="panel"><view class="validation invalid">{{summary.message}}</view><view class="help-text">请回到记点数或台费页面补充并核对。</view></view>
+    <block wx:else>
+      <view class="panel"><view class="panel-heading">麻将输赢 · 每个人</view><view wx:for="{{summary.players}}" wx:for-item="player" wx:key="id" class="result-row"><view><text>{{player.name}}</text><text wx:if="{{player.groupLabel}}" class="group-chip">{{player.groupLabel}}</text><view class="help-text">{{player.pointsLabel}} 点</view></view><text class="{{player.gameCents >= 0 ? 'positive' : 'negative'}}">{{player.gameLabel}}</text></view></view>
+      <view class="panel"><view class="panel-heading">台费分摊 <text class="chevron">共 ¥{{summary.totalFee}}</text></view><view wx:for="{{summary.players}}" wx:for-item="player" wx:key="id" class="result-row"><text>{{player.name}}</text><text class="fee-details">承担 ¥{{player.feeShareLabel}} · 垫付 ¥{{player.feePaidLabel}}</text></view></view>
+      <view class="panel"><view class="panel-heading">建议转账</view><view class="mode-toggle"><view class="mode {{!includeFees ? 'selected' : ''}}" data-include="no" bindtap="setSettlementMode">不算台费</view><view class="mode {{includeFees ? 'selected' : ''}}" data-include="yes" bindtap="setSettlementMode">算上台费</view></view><view wx:for="{{summary.transfers}}" wx:for-item="transfer" wx:key="index" class="transfer-row"><view>{{transfer.from}} <text class="arrow">→</text> {{transfer.to}}</view><text>¥{{transfer.amount}}</text></view><view wx:if="{{!summary.transfers.length}}" class="help-text">已相互抵消，无需转账。</view><view class="help-text">组合成员先合并，再向外收付；请选择一种方案线下转账。</view></view>
+      <button class="primary-action" bindtap="saveSettlement">保存本次清算</button>
+      <view class="help-text save-record-hint">保存当时的点数、金额和日期；之后修改牌局不会改变已保存的记录。</view>
+    </block>
+    <view wx:if="{{recordViews.length}}" class="records-section"><view class="section-title">本场清算记录</view><view wx:for="{{recordViews}}" wx:for-item="record" wx:key="id" class="panel record-panel"><view class="panel-heading" data-id="{{record.id}}" bindtap="openRecord"><view>{{record.dateLabel}}</view><text class="chevron">{{expandedRecordId === record.id ? '收起' : '查看 ›'}}</text></view><block wx:if="{{expandedRecordId === record.id}}"><view wx:for="{{record.players}}" wx:for-item="person" wx:key="id" class="result-row"><view>{{person.name}} <text wx:if="{{person.groupName}}" class="group-chip">{{person.groupName}}</text></view><view class="saved-score">{{person.pointsLabel}} 点　{{person.gameLabel}}</view></view><view class="help-text">当时台费 ¥{{record.totalFee}}</view><view class="saved-transfer-heading">不算台费的转账</view><view wx:for="{{record.withoutFee}}" wx:for-item="transfer" wx:key="index" class="saved-transfer">{{transfer.from}} → {{transfer.to}}　¥{{transfer.amount}}</view><view wx:if="{{!record.withoutFee.length}}" class="help-text">无需转账</view><view class="saved-transfer-heading">算上台费的转账</view><view wx:for="{{record.withFee}}" wx:for-item="transfer" wx:key="index" class="saved-transfer">{{transfer.from}} → {{transfer.to}}　¥{{transfer.amount}}</view><view wx:if="{{!record.withFee.length}}" class="help-text">无需转账</view></block></view></view>
+  </block>
+  <view class="footer-note">对局自动保存在本机</view>
+  <view wx:if="{{dialog}}" class="dialog-backdrop" bindtap="closeDialog"><view class="dialog-card" catchtap="absorbTap"><view class="dialog-title">{{dialog.title}}</view>
+    <block wx:if="{{dialog.kind === 'groupPicker' || dialog.kind === 'payerPicker'}}"><view class="dialog-options"><view wx:for="{{dialog.options}}" wx:for-item="option" wx:key="id" class="dialog-option {{dialog.selected === option.id ? 'chosen' : ''}}" data-id="{{option.id}}" bindtap="chooseDialogOption">{{option.name}}<text wx:if="{{dialog.selected === option.id}}"> ✓</text></view></view><view wx:if="{{dialog.kind === 'groupPicker' && dialog.options.length === 1}}" class="dialog-note">还没有组合，可先在“玩家与组合”页面添加。</view><button class="dialog-cancel-wide" bindtap="closeDialog">取消</button></block>
+    <block wx:elif="{{dialog.kind === 'removeGroup' || dialog.kind === 'removeRound' || dialog.kind === 'removeFee'}}"><view class="dialog-note">{{dialog.message}}</view><view class="dialog-actions"><button class="dialog-cancel" bindtap="closeDialog">取消</button><button class="dialog-confirm danger" bindtap="confirmDialog">确认删除</button></view></block>
+    <block wx:else><view wx:if="{{dialog.kind === 'addPlayer' && dialog.options.length}}" class="dialog-note">从本机玩家名单选择</view><view wx:if="{{dialog.kind === 'addPlayer' && dialog.options.length}}" class="dialog-options"><view wx:for="{{dialog.options}}" wx:for-item="option" wx:key="id" class="dialog-option" data-id="{{option.id}}" bindtap="chooseDialogOption">{{option.name}}　＋</view></view><view wx:if="{{dialog.kind === 'addPlayer' && dialog.options.length}}" class="dialog-note">或输入新昵称</view><input class="dialog-input" type="text" value="{{dialog.value}}" placeholder="{{dialog.placeholder}}" bindinput="changeDialogValue" focus="{{dialog.kind !== 'addPlayer' || !dialog.options.length}}" /><view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view><view class="dialog-actions"><button class="dialog-cancel" bindtap="closeDialog">取消</button><button class="dialog-confirm" bindtap="confirmDialog">保存</button></view></block>
+  </view></view>
+</view>

@@ -1,0 +1,49 @@
+<view class="people-page">
+  <view class="page-heading">
+    <view class="eyebrow">麻将清算</view>
+    <view class="page-title">玩家与组合</view>
+    <view class="page-caption">在这里管理本机名单，开新对局时可直接使用。</view>
+  </view>
+  <view wx:if="{{readFailed}}" class="warning">无法读取名单，请检查设备存储后重新进入。</view>
+  <block wx:else>
+    <view class="section-heading"><view><view class="section-title">玩家</view><view class="section-caption">昵称和组合变更会同步到已关联的对局</view></view><view class="text-action" bindtap="addPlayer">＋ 添加玩家</view></view>
+    <view class="panel">
+      <view wx:if="{{!players.length}}" class="empty">还没有玩家，添加后可以在新对局中选择。</view>
+      <view wx:for="{{players}}" wx:for-item="player" wx:key="id" class="player-row">
+        <view class="player-main"><view class="player-name" data-id="{{player.id}}" bindtap="renamePlayer">{{player.name}} <text class="edit-hint">✎ 改名</text></view><view class="group-change" data-id="{{player.id}}" bindtap="openGroupPicker">{{player.groupName}}　更改 ›</view></view>
+        <view class="danger-link" data-type="player" data-id="{{player.id}}" bindtap="requestDelete">移除</view>
+      </view>
+      <button class="outline-button" bindtap="addPlayer">＋ 添加玩家</button>
+    </view>
+    <view class="section-heading"><view><view class="section-title">组合</view><view class="section-caption">加入同一组合的人一起收付</view></view><view class="text-action" bindtap="addGroup">＋ 添加组合</view></view>
+    <view class="panel">
+      <view wx:if="{{!groups.length}}" class="empty">可以先创建组合，再为玩家选择。</view>
+      <view wx:for="{{groups}}" wx:for-item="group" wx:key="id" class="group-row"><view class="group-info"><view class="group-name">{{group.name}}</view><view class="members">{{group.members}}</view></view><view class="group-actions"><view class="text-action" data-id="{{group.id}}" bindtap="renameGroup">改名</view><view class="danger-link" data-type="group" data-id="{{group.id}}" bindtap="requestDelete">删除</view></view></view>
+      <button class="outline-button" bindtap="addGroup">＋ 添加组合</button>
+    </view>
+    <view class="footer-note">名单保存在本机</view>
+  </block>
+
+  <view wx:if="{{dialog}}" class="dialog-backdrop" bindtap="closeDialog">
+    <view class="dialog-card" catchtap="absorbTap">
+      <view class="dialog-title">{{dialog.title}}</view>
+      <block wx:if="{{dialog.kind === 'picker'}}">
+        <view class="dialog-note">{{dialog.note}}</view>
+        <view class="dialog-options"><view wx:for="{{dialog.options}}" wx:for-item="option" wx:key="id" class="dialog-option {{dialog.selected === option.id ? 'chosen' : ''}}" data-id="{{option.id}}" bindtap="chooseGroup">{{option.name}}<text wx:if="{{dialog.selected === option.id}}"> ✓</text></view></view>
+        <view wx:if="{{dialog.options.length === 1}}" class="dialog-note">还没有组合，可先在页面下方添加。</view>
+        <view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view>
+        <button class="dialog-cancel-wide" bindtap="closeDialog">取消</button>
+      </block>
+      <block wx:elif="{{dialog.kind === 'delete'}}">
+        <view class="dialog-note">{{dialog.message}}</view><view wx:if="{{dialog.stage === 2}}" class="dialog-warning">请再次确认后继续。</view>
+        <view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view>
+        <view class="dialog-actions"><button class="dialog-cancel" bindtap="closeDialog">取消</button><button class="dialog-confirm danger" bindtap="confirmDelete">{{dialog.stage === 1 ? '继续' : '确认删除'}}</button></view>
+      </block>
+      <block wx:else>
+        <input class="dialog-input" type="text" value="{{dialog.value}}" placeholder="{{dialog.placeholder}}" bindinput="changeDialogValue" focus maxlength="30" />
+        <view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view>
+        <view class="dialog-actions"><button class="dialog-cancel" bindtap="closeDialog">取消</button><button class="dialog-confirm" bindtap="confirmName">保存</button></view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,14 +1,8 @@
 <view class="page guide-page">
   <view class="guide-card panel">
-    <view class="guide-heading">📋 设置页</view>
-    <view class="guide-item"><text class="gold">比率 1:N</text><text>大盲注相对于小盲注的倍数。持有筹码用于进入分析页后的初始“持有”数值；单价用于记录每单位筹码对应金额；参与人数为牌桌总人数（2–9人）。</text></view>
-    <view class="guide-item"><text class="gold">参与人数</text><text>进入分析页后生成对应数量的座位，位置标签随人数变化。</text></view>
-  </view>
-  <view class="guide-card panel">
-    <view class="guide-heading">🎯 分析页 · 圆桌操作</view>
-    <view class="guide-item"><text class="gold">第一步：设庄家</text><text>点击任意白色圆圈设为庄家（橙色 D）。系统按座位顺序标出小盲、大盲及其他位置。</text></view>
-    <view class="guide-item"><text class="gold">第二步：选牌与参数</text><text>选择两张手牌和公共牌，在参数区记录底池、匹配额和持有筹码。相同牌不能重复选取。</text></view>
-    <view class="guide-item"><text class="gold">第三步：获取分析</text><text>点击“获取决策分析”查看建议。当前恢复版尚未取得原版结果页，策略输出会明确提示需要补充参考，不会冒充原算法。</text></view>
-    <view class="guide-item"><text class="gold">位置标签规则</text><text>6人：D / SB / BB / UTG / MP / CO；7人加入 HJ；8人加入 UTG+1；9人再加入 MP+1。人数更少时依次减少靠近 CO 端的位置。</text></view>
+    <view class="guide-heading">🃏 牌型分析</view>
+    <view class="guide-item"><text class="gold">选择牌面</text><text>选择两张手牌，再选择 3～5 张公共牌。点击已经选择的牌可以移除并重新选择。</text></view>
+    <view class="guide-item"><text class="gold">当前牌型</text><text>选好两张手牌和至少三张公共牌后自动分析，查看当前可以组成的最佳五张牌及牌型说明。添加公共牌后结果会自动更新。</text></view>
+    <view class="guide-item"><text class="gold">可能的组合</text><text>公共牌未发完时，页面会列出可能组成的更大牌型和示例牌面。示例不代表一定会出现；实际胜负还需要比较其他玩家的牌。</text></view>
   </view>
 </view>

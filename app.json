@@ -6,7 +6,10 @@
     "pages/analyzer-guide/index",
     "pages/offline-setup/index",
     "pages/offline-guide/index",
-    "pages/offline-table/index"
+    "pages/offline-table/index",
+    "pages/mahjong-history/index",
+    "pages/mahjong-session/index",
+    "pages/mahjong-people/index"
   ],
   "window": {
     "navigationBarTitleText": "小工具省更多",

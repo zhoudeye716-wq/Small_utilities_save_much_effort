@@ -1,53 +1,54 @@
 <view class="analyzer-page">
+  <view class="intro">
+    <view class="intro-title">看懂你的牌</view>
+    <view class="intro-text">选 2 张手牌和至少 3 张公共牌，自动查看当前牌型和可能的组合。</view>
+  </view>
+
   <view class="panel selection-panel">
-    <view class="panel-title row-between"><text>🃏 选牌</text><text class="muted small" bindtap="showExample">示例</text></view>
-    <view class="slot-label">初始牌</view>
-    <view class="cards-row">
-      <view class="card-slot" data-slot="hand-0" bindtap="selectSlot"><text wx:if="{{!hand[0]}}">?</text><text wx:else style="color:{{hand[0].color}}">{{hand[0].rank}}{{hand[0].symbol}}</text></view>
-      <view class="card-slot" data-slot="hand-1" bindtap="selectSlot"><text wx:if="{{!hand[1]}}">?</text><text wx:else style="color:{{hand[1].color}}">{{hand[1].rank}}{{hand[1].symbol}}</text></view>
+    <view class="selection-heading"><text>你的手牌</text><text class="selection-count">2 张</text></view>
+    <view class="cards-row hand-row">
+      <view class="card-slot {{slot === 'hand-0' ? 'active' : ''}} {{hand[0] ? 'filled' : ''}}" data-slot="hand-0" bindtap="selectSlot"><text wx:if="{{!hand[0]}}">＋</text><text wx:else class="suit-{{hand[0].suit}}">{{hand[0].rank === 'T' ? '10' : hand[0].rank}}{{hand[0].symbol}}</text></view>
+      <view class="card-slot {{slot === 'hand-1' ? 'active' : ''}} {{hand[1] ? 'filled' : ''}}" data-slot="hand-1" bindtap="selectSlot"><text wx:if="{{!hand[1]}}">＋</text><text wx:else class="suit-{{hand[1].suit}}">{{hand[1].rank === 'T' ? '10' : hand[1].rank}}{{hand[1].symbol}}</text></view>
     </view>
-    <view class="slot-label">共享牌</view>
+    <view class="selection-heading board-heading"><text>桌上公共牌</text><text class="selection-count">3～5 张</text></view>
     <view class="cards-row board-row">
-      <view class="card-slot" wx:for="{{board}}" wx:key="index" data-slot="board-{{index}}" bindtap="selectSlot"><text wx:if="{{!item}}">＋</text><text wx:else style="color:{{item.color}}">{{item.rank}}{{item.symbol}}</text></view>
+      <view class="card-slot {{slot === 'board-' + index ? 'active' : ''}} {{item ? 'filled' : ''}}" wx:for="{{board}}" wx:key="index" data-slot="board-{{index}}" bindtap="selectSlot"><text wx:if="{{!item}}">＋</text><text wx:else class="suit-{{item.suit}}">{{item.rank === 'T' ? '10' : item.rank}}{{item.symbol}}</text></view>
     </view>
+    <view class="slot-tip">{{slotLabel}} · 点击已选卡片可移除</view>
+    <view class="actions"><button class="reset-button" bindtap="clearCards">清空</button><button wx:if="{{result}}" class="analyze-button" bindtap="showResults">{{result.remaining === 0 ? '查看最终牌型' : '查看牌型分析'}} ↓</button><view wx:else class="waiting-tip">选好 3 张公共牌后自动分析</view></view>
   </view>
 
-  <view class="panel deck-panel">
-    <view class="panel-title">选择卡片 <text class="muted small">{{slotLabel}}</text></view>
+  <view wx:if="{{result}}" id="analysis-result" class="panel result-panel">
+    <view class="result-label">当前最佳牌型</view>
+    <view class="result-title">{{result.name}}</view>
+    <view class="result-description">{{result.description}}</view>
+    <view class="result-cards">{{result.cards}}</view>
+    <block wx:if="{{result.remaining > 0}}">
+      <view class="possibility-title">接下来可能组成</view>
+      <view class="result-note">还会发 {{result.remaining}} 张公共牌。以下只是可能的组合，不代表一定出现。</view>
+      <view wx:for="{{result.possibilities}}" wx:key="name" class="possibility">
+        <view class="possibility-name">{{item.name}}</view>
+        <view class="possibility-text">例如再发：{{item.draw}}</view>
+        <view class="possibility-text">可组成：{{item.cards}}</view>
+        <view class="possibility-description">{{item.description}}</view>
+      </view>
+      <view wx:if="{{!result.possibilities.length}}" class="result-note">剩余公共牌无法组成比当前牌型种类更大的牌型。</view>
+      <button class="continue-select-button" bindtap="showCardPicker">继续选择公共牌 ↓</button>
+    </block>
+    <view wx:else class="result-note final-note">5 张公共牌已全部发出，这是当前最终牌型。</view>
+    <view class="result-note final-note">实际胜负还要比较其他玩家的牌。</view>
+  </view>
+
+  <view id="card-picker" class="panel deck-panel">
+    <view class="deck-title">选择扑克牌</view>
+    <view class="deck-subtitle">{{slotLabel}}</view>
+    <view class="deck-hint">每列同一点数，花色从上到下依次为 ♠ ♥ ♣ ♦</view>
     <view class="deck-grid">
-      <view wx:for="{{deck}}" wx:key="key" class="deck-card {{item.selected ? 'selected' : ''}}" data-card="{{item.key}}" bindtap="chooseCard">
-        <text style="color:{{item.color}}">{{item.rank}}</text><text style="color:{{item.color}}">{{item.symbol}}</text>
+      <view wx:for="{{rankGroups}}" wx:for-item="group" wx:key="rank" class="rank-group">
+        <view class="rank-label">{{group.rank === 'T' ? '10' : group.rank}}</view>
+        <view wx:for="{{group.cards}}" wx:for-item="card" wx:key="key" class="deck-card {{card.selected ? 'selected' : ''}}" data-card="{{card.key}}" bindtap="chooseCard"><text class="suit-{{card.suit}}">{{card.rank === 'T' ? '10' : card.rank}}{{card.symbol}}</text></view>
       </view>
     </view>
   </view>
 
-  <view class="panel table-panel">
-    <view class="panel-title">🎯 桌面（时期：{{stageLabel}}）</view>
-    <view class="oval-table">
-      <view class="table-center"><text>底池 {{pot}}</text><text class="table-hint">点选座位设置庄家</text></view>
-      <view wx:for="{{seats}}" wx:key="index" class="seat {{item.dealer ? 'dealer' : ''}} {{item.folded ? 'folded' : ''}}" style="left:{{item.left}}%;top:{{item.top}}%" data-index="{{index}}" bindtap="setDealer">
-        <text class="seat-role">{{item.role}}</text><text class="seat-stack">{{item.stack}}</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="panel parameters-panel">
-    <view class="panel-title">⚙ 参数</view>
-    <view class="parameter-row"><text>累积池</text><input class="field-input compact-input" type="digit" value="{{pot}}" data-key="pot" bindinput="onNumericInput" placeholder="数量(单位)" /></view>
-    <view class="chips-row"><button wx:for="{{increments}}" wx:key="*this" data-key="pot" data-amount="{{item}}" bindtap="addAmount">+{{item}}</button></view>
-    <view class="parameter-row"><text>匹配额</text><input class="field-input compact-input" type="digit" value="{{match}}" data-key="match" bindinput="onNumericInput" placeholder="需匹配额度(0=无需)" /></view>
-    <view class="chips-row"><button wx:for="{{increments}}" wx:key="*this" data-key="match" data-amount="{{item}}" bindtap="addAmount">+{{item}}</button></view>
-    <view class="parameter-row"><text>持有</text><input class="field-input compact-input" type="digit" value="{{held}}" data-key="held" bindinput="onNumericInput" /></view>
-    <view class="parameter-row"><text>持续</text><switch checked="{{continuous}}" color="#22a994" bindchange="toggleContinuous" /></view>
-  </view>
-
-  <view wx:if="{{analysisMessage}}" class="analysis-note">{{analysisMessage}}</view>
-  <view class="muted small analysis-caption">胜率为本地随机模拟估算，按底池赔率给出行动倾向</view>
-  <button class="primary-button analyze-button" bindtap="getAnalysis">📊 获取决策分析</button>
-  <view class="bottom-actions">
-    <button class="loss-button" bindtap="recordLoss">× 本局输</button>
-    <button class="clear-button" bindtap="clearRound">清空</button>
-    <button class="win-button" bindtap="recordWin">🏆 本局赢</button>
-  </view>
-  <view class="result-count muted">已记录：{{wins}} 胜 / {{losses}} 负</view>
 </view>

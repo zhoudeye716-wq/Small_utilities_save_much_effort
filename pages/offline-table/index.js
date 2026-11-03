@@ -10,7 +10,7 @@ Page({
     table: null, seats: [], stageLabel: '', currentRole: '', toCall: 0, callAmount: 0,
     mode: '', modeLabel: '', pendingBet: 0, increments: [1, 5, 10, 50, 100, 500],
     pots: [], selections: [], selectedPot: -1, canChangeDealer: true,
-    layoutWidth: 800, layoutHeight: 320, menuOpen: false, menuTop: 8, menuRight: 100
+    layoutWidth: 800, layoutHeight: 320, menuOpen: false, menuTop: 8, menuRight: 100, topUpDialog: null
   },
   onLoad: function () {
     var table = storage.loadState('offlineTable', null);
@@ -120,18 +120,11 @@ Page({
   },
   onSeatTap: function (event) {
     var index = Number(event.currentTarget.dataset.index);
-    var self = this;
     if (this.data.mode === 'dealer') {
       this.setData({ mode: '', modeLabel: '' });
       this.updateTable(engine.setDealer(this.data.table, index));
     } else if (this.data.mode === 'topup') {
-      wx.showModal({ title: '给 P' + (index + 1) + ' 补充筹码', editable: true, placeholderText: '输入大于 0 的整数', success: function (result) {
-        if (!result.confirm) return;
-        var change = engine.addChips(self.data.table, index, result.content);
-        if (change.error) return self.showError(change.error);
-        self.setData({ mode: '', modeLabel: '' });
-        self.updateTable(change.state);
-      } });
+      this.setData({ topUpDialog: { index: index, label: 'P' + (index + 1), amount: '', error: '' } });
     } else if (this.data.mode === 'winner') {
       var pot = this.data.pots[this.data.selectedPot];
       if (!pot || pot.eligible.indexOf(index) < 0) return this.showError('这个座位没有资格参与该底池结算。');
@@ -143,6 +136,17 @@ Page({
       this.setData({ selections: selections });
       this.updateTable(Object.assign({}, this.data.table, { winnerSelections: selections }));
     }
+  },
+  closeTopUp: function () { this.setData({ topUpDialog: null }); },
+  absorbTopUpTap: function () {},
+  inputTopUp: function (event) { this.setData({ 'topUpDialog.amount': event.detail.value, 'topUpDialog.error': '' }); },
+  confirmTopUp: function () {
+    var dialog = this.data.topUpDialog;
+    if (!dialog) return;
+    var change = engine.addChips(this.data.table, dialog.index, dialog.amount);
+    if (change.error) return this.setData({ 'topUpDialog.error': change.error });
+    this.setData({ topUpDialog: null, mode: '', modeLabel: '' });
+    this.updateTable(change.state);
   },
   addBet: function (event) {
     var seat = this.data.table.seats[this.data.table.currentSeat];

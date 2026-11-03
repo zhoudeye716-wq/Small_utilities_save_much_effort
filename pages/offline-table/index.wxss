@@ -1,6 +1,14 @@
 .table-page { height: 100vh; padding: 8rpx 30rpx; display: flex; flex-direction: column; overflow: hidden; background: #071b12; }
 .menu-backdrop { position: fixed; z-index: 19; top: 0; right: 0; bottom: 0; left: 0; }
 .table-menu { position: fixed; z-index: 20; }
+.topup-backdrop { position: fixed; z-index: 30; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(0,0,0,.7); }
+.topup-dialog { width: 340px; max-width: 85%; padding: 16px; border: 1px solid #52755e; border-radius: 14px; background: #17382a; }
+.topup-title { color: #f4e8c6; font-size: 16px; font-weight: 700; }
+.topup-input { height: 40px; margin-top: 12px; padding: 6px 10px; border: 1px solid #5b836b; border-radius: 7px; color: #f2e8cb; background: #102c1e; font-size: 16px; }
+.topup-error { margin-top: 6px; color: #ffbbaa; font-size: 12px; }
+.topup-actions { display: flex; gap: 8px; margin-top: 12px; }
+.topup-actions button { flex: 1; min-height: 36px; border-radius: 7px; color: #c4dcc9; background: #28503a; font-size: 14px; line-height: 36px; }
+.topup-actions .topup-confirm { color: white; background: #218d6d; }
 .menu-trigger { padding: 7rpx 14rpx; border: 1rpx solid rgba(197, 223, 200, .28); border-radius: 10rpx; color: #e3eee3; background: #193b2a; font-size: 17rpx; font-weight: 700; white-space: nowrap; }
 .menu-list { position: absolute; right: 0; top: 100%; width: 155rpx; margin-top: 6rpx; padding: 5rpx; border: 1rpx solid rgba(197, 223, 200, .2); border-radius: 12rpx; color: #e6eee3; background: #173629; box-shadow: 0 8rpx 24rpx rgba(0,0,0,.4); }
 .menu-list view { padding: 11rpx 13rpx; border-bottom: 1rpx solid rgba(197, 223, 200, .1); font-size: 16rpx; white-space: nowrap; }

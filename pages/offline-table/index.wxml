@@ -10,6 +10,7 @@
       <view data-action="back" bindtap="menuAction">返回设置</view>
     </view>
   </view>
+  <view wx:if="{{topUpDialog}}" class="topup-backdrop" bindtap="closeTopUp"><view class="topup-dialog" catchtap="absorbTopUpTap"><view class="topup-title">给 {{topUpDialog.label}} 补充筹码</view><input class="topup-input" type="number" value="{{topUpDialog.amount}}" bindinput="inputTopUp" placeholder="输入大于 0 的整数" focus /><view wx:if="{{topUpDialog.error}}" class="topup-error">{{topUpDialog.error}}</view><view class="topup-actions"><button bindtap="closeTopUp">取消</button><button class="topup-confirm" bindtap="confirmTopUp">确认补充</button></view></view></view>
   <view class="table-scene">
     <view class="oval-table"></view>
     <view wx:for="{{seats}}" wx:key="index" class="player-seat {{item.dealer ? 'dealer' : ''}} {{item.role === 'SB' || item.role === 'D/SB' ? 'small-blind' : ''}} {{item.role === 'BB' ? 'big-blind' : ''}} {{item.folded ? 'folded' : ''}} {{item.current ? 'current' : ''}} {{item.selected ? 'selected' : ''}}" style="{{item.positionStyle}}" data-index="{{index}}" bindtap="onSeatTap">
