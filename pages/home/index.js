@@ -13,5 +13,8 @@ Page({
   },
   openMahjong: function () {
     wx.navigateTo({ url: '/pages/mahjong-history/index' });
+  },
+  openSignboard: function () {
+    wx.navigateTo({ url: '/pages/signboard-list/index' });
   }
 });

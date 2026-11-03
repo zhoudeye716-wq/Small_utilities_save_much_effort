@@ -1,0 +1,63 @@
+<page-meta page-orientation="{{orientation}}" />
+<view class="sign-page" style="background-color: {{background}};">
+  <view class="stage" bindtap="toggleSettings" bindtouchstart="touchStart" bindtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchEnd">
+    <view wx:if="{{!lines.length}}" class="stage-empty">轻点屏幕输入桌牌文字</view>
+    <view wx:elif="{{scrolling}}" class="marquee-viewport">
+      <view class="marquee-track" style="width: {{loopWidth * 2}}px; animation-duration: {{duration}}s;">
+        <view wx:for="{{[0, 1]}}" wx:for-item="copy" wx:key="*this" class="marquee-copy" style="width: {{loopWidth}}px;">
+          <view wx:for="{{lines}}" wx:for-item="line" wx:key="id" class="sign-line ink {{colorMode}}" style="font-size: {{fontPx}}px; color: {{color}};">{{line.text}}</view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="static-text">
+      <view wx:for="{{lines}}" wx:for-item="line" wx:key="id" class="sign-line ink {{colorMode}}" style="font-size: {{fontPx}}px; color: {{color}};">{{line.text}}</view>
+    </view>
+    <view class="measure" aria-hidden="true">
+      <view wx:for="{{lines}}" wx:for-item="line" wx:key="id"><view class="measure-line" style="font-size: {{fontPx}}px;">{{line.text}}</view></view>
+    </view>
+    <view wx:if="{{!settingsOpen}}" class="stage-hint">轻点设置 · 双指缩放</view>
+  </view>
+
+  <view wx:if="{{settingsOpen}}" class="settings" catchtap="absorbTap">
+    <view class="settings-head" style="padding-top: {{safeTop}}px;"><view><view class="settings-title">桌牌设置</view><view class="settings-note">修改后实时显示 · 双指缩放文字</view></view><view class="close" bindtap="toggleSettings">收起 ✕</view></view>
+    <scroll-view class="settings-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+      <view class="field-title">展示文字 <text>可换行</text></view>
+      <textarea class="text-input" value="{{text}}" placeholder="输入要展示的内容" placeholder-class="placeholder" maxlength="2000" bindinput="updateText" auto-height="false" />
+      <view class="field-row"><view class="field-title">文字大小</view><view class="small-action" bindtap="resetSize">恢复自动大小</view></view>
+      <view class="helper">在画面上双指张开或捏合来调整</view>
+      <view class="field-title">屏幕方向</view>
+      <view class="target-row"><view class="target {{orientation === 'landscape' ? 'selected' : ''}}" data-orientation="landscape" bindtap="setOrientation">横屏</view><view class="target {{orientation === 'auto' ? 'selected' : ''}}" data-orientation="auto" bindtap="setOrientation">跟随设备</view></view>
+      <view class="field-title">文字颜色</view>
+      <view class="mode-row">
+        <view class="mode {{colorMode === 'solid' ? 'selected' : ''}}" data-mode="solid" bindtap="setMode">固定颜色</view>
+        <view class="mode {{colorMode === 'shift' ? 'selected' : ''}}" data-mode="shift" bindtap="setMode">整体变色</view>
+        <view class="mode {{colorMode === 'rainbow' ? 'selected' : ''}}" data-mode="rainbow" bindtap="setMode">彩虹流动</view>
+      </view>
+      <view class="field-title">选择颜色</view>
+      <view class="target-row"><view class="target {{colorTarget === 'color' ? 'selected' : ''}}" data-target="color" bindtap="setTarget">文字色</view><view class="target {{colorTarget === 'background' ? 'selected' : ''}}" data-target="background" bindtap="setTarget">背景色</view></view>
+      <view class="swatches"><view wx:for="{{presets}}" wx:key="*this" class="swatch" style="background-color: {{item}};" data-color="{{item}}" bindtap="setColor"></view><input class="hex-input" type="text" maxlength="7" value="{{colorInput}}" bindinput="inputColor" bindblur="finishColor" /></view>
+      <view wx:if="{{colorTarget === 'color' && colorMode !== 'solid'}}" class="helper">动态模式下使用彩色效果；固定颜色会保留。</view>
+      <view class="field-row"><view class="field-title">滚动速度</view><text class="helper">{{speed}}</text></view>
+      <slider min="15" max="480" step="5" value="{{speed}}" activeColor="#6f9ee9" backgroundColor="#46556e" block-size="18" bindchanging="setSpeed" bindchange="setSpeed" />
+      <view class="helper">文字超过屏幕宽度时自动向左滚动</view>
+      <view class="actions"><button class="action secondary" bindtap="requestBack">返回</button><button class="action primary" bindtap="saveButton">保存桌牌</button></view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{dialog}}" class="dialog-mask" catchtap="absorbTap">
+    <view class="dialog-card">
+      <block wx:if="{{dialog.kind === 'save'}}">
+        <view class="dialog-title">保存桌牌</view>
+        <view class="dialog-copy">给这个桌牌起个名称，方便下次找到。</view>
+        <input class="dialog-input" type="text" value="{{dialog.value}}" maxlength="30" bindinput="inputName" />
+        <view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view>
+        <view class="dialog-actions"><button class="dialog-button cancel" bindtap="closeDialog">取消</button><button class="dialog-button confirm" bindtap="confirmSave">保存</button></view>
+      </block>
+      <block wx:else>
+        <view class="dialog-title">桌牌还没有保存</view>
+        <view class="dialog-copy">保存后下次可以继续使用。</view>
+        <view class="dialog-actions"><button class="dialog-button cancel" bindtap="closeDialog">继续编辑</button><button class="dialog-button danger" bindtap="leave">不保存退出</button><button class="dialog-button confirm" bindtap="saveAndLeave">保存并退出</button></view>
+      </block>
+    </view>
+  </view>
+</view>

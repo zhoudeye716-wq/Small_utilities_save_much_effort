@@ -1,0 +1,19 @@
+<view class="adaptive-page list-page">
+  <view class="eyebrow">随手展示</view>
+  <view class="heading">临时桌牌</view>
+  <view class="description">写下文字，横放手机，就能展示。</view>
+  <view class="adaptive-action create" role="button" aria-label="新建桌牌" hover-class="adaptive-action-hover" bindtap="create"><text class="adaptive-action-icon">＋</text><text>新建桌牌</text></view>
+  <view class="list-title">已保存的桌牌 <text>{{items.length}}</text></view>
+  <view wx:if="{{invalid}}" class="empty">读取失败，请稍后重试。已有数据不会被覆盖。</view>
+  <view wx:elif="{{!items.length}}" class="empty">还没有保存的桌牌，先创建一个吧</view>
+  <view wx:else class="records">
+    <view wx:for="{{items}}" wx:key="id" class="record">
+      <view class="record-main" data-id="{{item.id}}" bindtap="open">
+        <view class="record-name">{{item.name}}</view>
+        <view class="record-text">{{item.text}}</view>
+      </view>
+      <view class="delete" data-id="{{item.id}}" catchtap="remove">删除</view>
+    </view>
+  </view>
+  <view class="hint">桌牌保存在当前设备，清理小程序数据后可能丢失。</view>
+</view>

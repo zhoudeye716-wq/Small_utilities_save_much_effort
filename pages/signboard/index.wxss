@@ -1,0 +1,48 @@
+page { width: 100%; height: 100%; overflow: hidden; background: #000; }
+.sign-page, .stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.stage { display: flex; align-items: center; justify-content: center; }
+.stage-empty { color: #aab3c3; font-size: 18px; }
+.static-text { max-width: 100%; text-align: center; }
+.sign-line, .measure-line { font-family: -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif; font-weight: 700; line-height: 1.16; white-space: pre; }
+.ink.rainbow { color: transparent !important; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.ink.shift { animation: solid-colors 8s linear infinite; }
+.ink.rainbow { background-image: linear-gradient(90deg, #ff4c70, #ffb445, #f9ed69, #66e9a3, #64b7ff, #cc88ff, #ff4c70); background-size: 200% 100%; animation: colors 5s linear infinite; }
+@keyframes colors { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes solid-colors { 0%, 100% { color: #ff6666; } 20% { color: #ffd45f; } 40% { color: #79e5a0; } 60% { color: #80cfff; } 80% { color: #d693ff; } }
+.marquee-viewport { width: 100%; overflow: hidden; }
+.marquee-track { display: flex; animation: marquee linear infinite; }
+.marquee-copy { flex: none; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.measure { position: absolute; top: -10000px; left: 0; visibility: hidden; pointer-events: none; }
+.measure-line { display: inline-block; }
+.stage-hint { position: absolute; left: 16px; bottom: 12px; padding: 6px 10px; border-radius: 12px; color: #fff; background: rgba(22, 27, 37, .5); font-size: 11px; }
+.settings { position: absolute; z-index: 5; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; width: 46%; max-width: 420px; min-width: 280px; box-sizing: border-box; padding: 0 18px 14px; background: rgba(20, 28, 43, .97); color: #f1f5fc; }
+.settings-head { display: flex; flex: none; align-items: center; justify-content: space-between; padding-bottom: 10px; }
+.settings-title { font-size: 18px; font-weight: 700; }
+.settings-note, .helper { color: #aab8cb; font-size: 12px; line-height: 1.5; }
+.settings-note { margin-top: 3px; }
+.close, .small-action { padding: 8px; color: #abcaff; font-size: 13px; }
+.settings-scroll { flex: 1; min-height: 0; height: 0; }
+.field-title { margin: 13px 0 8px; font-size: 14px; font-weight: 700; }
+.field-title text { margin-left: 8px; color: #96a6bd; font-size: 11px; font-weight: 400; }
+.field-row { display: flex; align-items: center; justify-content: space-between; }
+.text-input { width: 100%; height: 66px; padding: 9px; box-sizing: border-box; border: 1px solid #596880; border-radius: 8px; background: #27364a; color: white; font-size: 14px; }
+.placeholder { color: #91a1b8; }
+.mode-row, .target-row { display: flex; gap: 6px; }
+.mode, .target { flex: 1; padding: 8px 3px; border: 1px solid #52627a; border-radius: 8px; color: #dce6f4; text-align: center; font-size: 12px; }
+.mode.selected, .target.selected { border-color: #84b5ff; background: #345a92; color: #fff; }
+.swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 10px; }
+.swatch { width: 24px; height: 24px; box-sizing: border-box; border: 1px solid #91a0b1; border-radius: 50%; }
+.hex-input { width: 80px; height: 29px; padding: 0 6px; border: 1px solid #596880; border-radius: 6px; background: #27364a; color: white; font-size: 13px; }
+.actions, .dialog-actions { display: flex; gap: 8px; margin: 18px 0 16px; }
+button.action, button.dialog-button { flex: 1; min-width: 0; margin: 0; padding: 0 8px; border-radius: 8px; font-size: 13px; line-height: 38px; }
+.secondary, .cancel { background: #34465f; color: #e3eaf5; }
+.primary, .confirm { background: #527fc3; color: white; }
+.danger { background: #794d51; color: white; }
+.dialog-mask { position: absolute; z-index: 10; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .7); }
+.dialog-card { width: 360px; max-width: 85%; padding: 18px; border: 1px solid #566a88; border-radius: 14px; background: #1c2a40; color: #f4f7fd; }
+.dialog-title { font-size: 18px; font-weight: 700; }
+.dialog-copy { margin-top: 8px; color: #b8c7dc; font-size: 13px; }
+.dialog-input { height: 38px; margin-top: 14px; padding: 0 10px; border: 1px solid #60738d; border-radius: 7px; background: #2a3a50; color: white; font-size: 15px; }
+.dialog-error { margin-top: 8px; color: #ffad9f; font-size: 12px; }
+@media (orientation: portrait) { .settings { width: 82%; min-width: 0; } }

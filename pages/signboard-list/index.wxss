@@ -1,0 +1,28 @@
+@import "../../styles/adaptive.wxss";
+page { background: #111a2c; color: #eef1fa; }
+.eyebrow { color: #98aac7; font-size: 22rpx; letter-spacing: 4rpx; }
+.heading { margin-top: 12rpx; font-size: 48rpx; font-weight: 700; }
+.description { margin: 16rpx 0 36rpx; color: #a8b8cf; font-size: 26rpx; }
+.list-title { margin: 44rpx 2rpx 20rpx; font-size: 30rpx; font-weight: 700; }
+.list-title text { margin-left: 12rpx; color: #91a6c1; font-size: 24rpx; }
+.records { display: flex; flex-direction: column; gap: 16rpx; }
+.record { display: flex; align-items: center; padding: 24rpx; border: 1rpx solid #43516b; border-radius: 20rpx; background: #1c2a40; }
+.record-main { flex: 1; min-width: 0; }
+.record-name { overflow: hidden; font-size: 30rpx; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+.record-text { overflow: hidden; margin-top: 10rpx; color: #aab9d0; font-size: 23rpx; white-space: nowrap; text-overflow: ellipsis; }
+.delete { margin-left: 20rpx; padding: 16rpx 20rpx; color: #ffb7a9; font-size: 24rpx; }
+.empty { padding: 60rpx 20rpx; border-radius: 20rpx; background: #1c2a40; color: #a8b8cf; text-align: center; font-size: 25rpx; }
+.hint { margin-top: 34rpx; color: #8094b1; text-align: center; font-size: 22rpx; }
+@media (min-width: 600px) {
+  .eyebrow { font-size: 13px; letter-spacing: 2px; }
+  .heading { margin-top: 8px; font-size: 32px; }
+  .description { margin: 10px 0 24px; font-size: 16px; }
+  .list-title { margin: 28px 2px 14px; font-size: 18px; }
+  .list-title text { margin-left: 8px; font-size: 14px; }
+  .record { padding: 16px; border-radius: 14px; }
+  .record-name { font-size: 18px; }
+  .record-text { margin-top: 6px; font-size: 14px; }
+  .delete { margin-left: 12px; padding: 10px 12px; font-size: 14px; }
+  .empty { padding: 36px 16px; border-radius: 14px; font-size: 15px; }
+  .hint { margin-top: 22px; font-size: 13px; }
+}
