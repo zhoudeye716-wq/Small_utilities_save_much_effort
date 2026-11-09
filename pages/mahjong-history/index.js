@@ -1,4 +1,5 @@
 var storage = require('../../utils/storage.js');
+var engine = require('../../utils/mahjong.js');
 var roster = require('../../utils/mahjong-roster.js');
 var records = require('../../utils/mahjong-records.js');
 
@@ -19,9 +20,11 @@ function formatDate(value) {
 }
 
 Page({
-  data: { sessions: [], storageInvalid: false, creating: false, managing: false, deleteDialog: null },
+  data: { sessions: [], storageInvalid: false, creating: false, managing: false, deleteDialog: null, guideEnabled: true },
 
   onShow: function () {
+    var preference = storage.loadState('mahjongGuideEnabled', true);
+    this.setData({ guideEnabled: preference !== false });
     var stored = readSessions();
     if (!Array.isArray(stored)) {
       this.setData({ sessions: [], storageInvalid: true });
@@ -47,6 +50,13 @@ Page({
 
   createSession: function () {
     if (this.data.creating) return;
+    if (this.data.guideEnabled) {
+      var page = this;
+      this.setData({ creating: true });
+      wx.navigateTo({ url: '/pages/mahjong-guide/index', fail: function () { wx.showToast({ title: '打开引导失败', icon: 'none' }); },
+        complete: function () { page.setData({ creating: false }); } });
+      return;
+    }
     var stored = readSessions();
     if (!Array.isArray(stored)) {
       wx.showToast({ title: '对局记录读取异常', icon: 'none' });
@@ -64,11 +74,34 @@ Page({
       return;
     }
     var session = result.session;
+    if (session) {
+      session.rulesVersion = 2;
+      var defaults = engine.createSession().players;
+      var nextName = 1;
+      while (session.players.length < 4) {
+        var name = '玩家' + nextName++;
+        if (session.players.some(function (player) { return player.name === name; })) continue;
+        var placeholder = defaults.pop();
+        placeholder.name = name;
+        session.players.push(placeholder);
+      }
+      session.players.forEach(function (player, index) {
+        player.active = index < 4;
+        player.attendance = player.active ? [{ start: null, end: null }] : [];
+      });
+      session.rounds = [engine.createRound(session.players.slice(0, 4).map(function (player) { return player.id; }), '50')];
+    }
     if (!session || !session.id || !storage.saveState('mahjongSessions', [session].concat(stored))) {
       wx.showToast({ title: '保存失败，请检查存储空间', icon: 'none' });
       return;
     }
     this.openSession(session.id);
+  },
+
+  toggleGuide: function () {
+    var next = !this.data.guideEnabled;
+    if (!storage.saveState('mahjongGuideEnabled', next)) return wx.showToast({ title: '设置保存失败', icon: 'none' });
+    this.setData({ guideEnabled: next });
   },
 
   managePeople: function () { wx.navigateTo({ url: '/pages/mahjong-people/index' }); },

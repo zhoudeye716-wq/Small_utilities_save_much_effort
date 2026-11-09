@@ -8,10 +8,12 @@
     "pages/offline-guide/index",
     "pages/offline-table/index",
     "pages/mahjong-history/index",
+    "pages/mahjong-guide/index",
     "pages/mahjong-session/index",
     "pages/mahjong-people/index",
     "pages/signboard-list/index",
-    "pages/signboard/index"
+    "pages/signboard/index",
+    "pages/timer/index"
   ],
   "window": {
     "navigationBarTitleText": "小工具省更多",

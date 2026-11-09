@@ -16,5 +16,8 @@ Page({
   },
   openSignboard: function () {
     wx.navigateTo({ url: '/pages/signboard-list/index' });
+  },
+  openTimer: function () {
+    wx.navigateTo({ url: '/pages/timer/index' });
   }
 });

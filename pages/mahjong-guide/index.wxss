@@ -1,0 +1,44 @@
+page { background: #0b2115; color: #f0e7c9; }
+.guide-page { box-sizing: border-box; width: 100%; max-width: 840rpx; min-height: 100vh; margin: 0 auto; padding: 38rpx 30rpx 60rpx; }
+.progress { display: flex; align-items: center; margin: 0 0 46rpx; }
+.progress-item { display: flex; flex: none; align-items: center; gap: 8rpx; color: #769384; font-size: 22rpx; }
+.progress-item.current { color: #a7e8c7; }
+.progress-number { width: 35rpx; height: 35rpx; border: 1rpx solid #668976; border-radius: 50%; line-height: 35rpx; text-align: center; }
+.current .progress-number { border-color: #65cca0; background: #286b4c; color: white; }
+.progress-line { flex: 1; min-width: 12rpx; height: 1rpx; margin: 0 9rpx; background: #456655; }
+.heading { color: #f5eac8; font-size: 44rpx; font-weight: 800; }
+.caption { margin-top: 12rpx; color: #a7c4b0; font-size: 25rpx; line-height: 1.6; }
+.caption.compact { margin: 6rpx 0 10rpx; font-size: 23rpx; }
+.player-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; margin-top: 32rpx; }
+.player-card { position: relative; display: flex; align-items: center; min-height: 104rpx; box-sizing: border-box; padding: 20rpx; border: 2rpx solid #385b47; border-radius: 18rpx; background: #183c29; transition: transform .15s, background-color .15s, border-color .15s; }
+.player-card.selected { border-color: #61ca9d; background: #255b40; }
+.pressed { transform: scale(.97); opacity: .85; }
+.check { flex: none; width: 34rpx; height: 34rpx; border: 2rpx solid #759985; border-radius: 50%; color: white; font-size: 24rpx; line-height: 34rpx; text-align: center; }
+.selected .check { border-color: #73d5aa; background: #29956a; }
+.player-label { flex: 1; min-width: 0; padding-left: 12rpx; color: #e8efdd; font-size: 28rpx; font-weight: 700; overflow-wrap: anywhere; }
+.edit-name { flex: none; padding: 12rpx 4rpx 12rpx 10rpx; color: #9ed8b9; font-size: 21rpx; }
+.add-player { display: flex; align-items: center; justify-content: center; min-height: 86rpx; margin-top: 18rpx; border: 1rpx dashed #6aa483; border-radius: 18rpx; color: #b3e4c4; font-size: 27rpx; font-weight: 700; }
+.hint { margin: 18rpx 4rpx 0; color: #91ad9a; font-size: 22rpx; line-height: 1.6; }
+.panel { margin-top: 24rpx; padding: 26rpx; border: 1rpx solid #345c44; border-radius: 22rpx; background: #153625; }
+.panel-heading { display: flex; justify-content: space-between; align-items: center; }
+.panel-title { color: #ecdfb9; font-size: 30rpx; font-weight: 700; }
+.optional { color: #9bbda7; font-size: 22rpx; }
+.field { display: flex; align-items: center; min-height: 84rpx; gap: 12rpx; border-bottom: 1rpx solid rgba(180, 214, 187, .12); color: #bfd3bf; font-size: 26rpx; }
+.field input { flex: 1; min-width: 0; text-align: right; color: #f3ebcf; }
+.unit { color: #9ab7a2; }
+.subheading { margin: 24rpx 0 14rpx; color: #c9dfca; font-size: 24rpx; font-weight: 700; }
+.payer-list { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.payer-chip { padding: 14rpx 22rpx; border: 1rpx solid #527a60; border-radius: 14rpx; color: #c1d7c6; background: #224532; font-size: 25rpx; }
+.payer-chip.chosen { border-color: #73d8ab; color: #e4ffed; background: #2b7652; }
+.actions { display: flex; gap: 14rpx; margin-top: 36rpx; }
+.actions button, .dialog-actions button { flex: 1; min-width: 0; min-height: 84rpx; border-radius: 16rpx; font-size: 28rpx; font-weight: 700; line-height: 84rpx; }
+.primary { color: white; background: #248f6b; }
+.secondary { color: #c8dec9; background: #294d39; }
+.error-banner { padding: 20rpx; border-radius: 12rpx; color: #ffc8b8; background: #59372e; }
+.dialog-backdrop { position: fixed; z-index: 100; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: 32rpx; background: rgba(0, 0, 0, .7); }
+.dialog-card { box-sizing: border-box; width: 100%; max-width: 610rpx; padding: 30rpx; border: 1rpx solid #52755e; border-radius: 24rpx; background: #17382a; }
+.dialog-title { color: #f5e8c4; font-size: 32rpx; font-weight: 800; }
+.dialog-note { margin-top: 18rpx; color: #bed3bf; font-size: 25rpx; line-height: 1.6; }
+.dialog-input { box-sizing: border-box; width: 100%; min-height: 82rpx; margin-top: 20rpx; padding: 12rpx 16rpx; border: 1rpx solid #5b836b; border-radius: 12rpx; color: #f4edce; background: #102c1e; font-size: 28rpx; }
+.dialog-error { margin-top: 10rpx; color: #ffbbaa; font-size: 23rpx; }
+.dialog-actions { display: flex; gap: 12rpx; margin-top: 26rpx; }

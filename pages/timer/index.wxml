@@ -1,0 +1,99 @@
+<view class="timer-page theme-{{theme}}">
+  <view class="topbar">
+    <view class="mode-tabs">
+      <button class="mode-tab {{mode === 'multi' ? 'selected' : ''}}" data-mode="multi" bindtap="switchMode">多项</button>
+      <button class="mode-tab {{mode === 'board' ? 'selected' : ''}}" data-mode="board" bindtap="switchMode">桌游</button>
+      <button class="mode-tab {{mode === 'versus' ? 'selected' : ''}}" data-mode="versus" bindtap="switchMode">对战</button>
+    </view>
+    <button class="style-open" bindtap="openStyles">风格</button>
+  </view>
+
+  <view wx:if="{{mode === 'multi'}}" class="multi-stage">
+    <scroll-view scroll-y class="bubble-viewport" id="bubble-viewport" bindscroll="onBubbleScroll">
+      <canvas type="2d" id="bubble-canvas" class="bubble-canvas" hidden="{{!!dialog || !!alert}}" style="height: {{canvasHeight}}px;" bindtouchstart="bubbleTouchStart" bindtouchend="bubbleTouchEnd"></canvas>
+      <view wx:if="{{!activeCount && !canvasError}}" class="empty-tip">添加一个计时，泡泡就会浮起来</view>
+      <view wx:if="{{canvasError}}" class="canvas-error">当前设备无法显示泡泡，可通过下方「管理」查看和操作计时</view>
+    </scroll-view>
+    <scroll-view wx:if="{{paused.length}}" scroll-x class="ice-shelf" style="height: {{iceHeight}}px" enhanced show-scrollbar="{{false}}">
+      <view class="ice-track">
+        <button class="ice-bubble" style="width: {{item.size}}px; height: {{item.size}}px" wx:for="{{paused}}" wx:key="id" data-id="{{item.id}}" bindtap="resumeTimer" aria-label="{{item.name}}，点击继续计时">
+          <text>{{item.name}}</text><text class="ice-time">{{item.display}}</text><text class="ice-label">❄ 已暂停</text>
+        </button>
+      </view>
+    </scroll-view>
+    <view class="bottom-controls">
+      <button class="primary" bindtap="openAdd">＋ 添加计时</button>
+      <button bindtap="openTimerList">管理</button>
+    </view>
+  </view>
+
+  <view wx:if="{{mode === 'board'}}" class="single-stage">
+    <view class="board-surface {{board.urgent ? 'urgent' : ''}}" style="{{board.background}}" bindtap="resetBoard">
+      <text class="scene-label">桌游计时</text>
+      <text class="board-clock">{{board.display}}</text>
+      <text class="scene-hint">{{board.running ? '点击屏幕重新计时' : '点击屏幕开始计时'}}</text>
+    </view>
+    <view class="bottom-controls">
+      <button class="primary" bindtap="toggleBoard">{{board.running ? '暂停' : '继续'}}</button>
+      <button bindtap="configureBoard">设置</button>
+      <button bindtap="resetBoardPaused">重置</button>
+    </view>
+  </view>
+
+  <view wx:if="{{mode === 'versus'}}" class="versus-stage">
+    <view class="chess-side top {{chess.running === 0 ? 'running' : ''}}" data-side="0" bindtap="playChess">
+      <text class="scene-label">玩家 A</text><text class="chess-clock">{{chess.displayA}}</text><text class="scene-hint">走完后点击</text>
+    </view>
+    <view class="chess-divider">{{chess.status}}</view>
+    <view class="chess-side {{chess.running === 1 ? 'running' : ''}}" data-side="1" bindtap="playChess">
+      <text class="scene-label">玩家 B</text><text class="chess-clock">{{chess.displayB}}</text><text class="scene-hint">走完后点击</text>
+    </view>
+    <view class="bottom-controls">
+      <button class="primary" bindtap="toggleChess">{{chess.running >= 0 ? '暂停' : '继续'}}</button>
+      <button bindtap="configureChess">设置</button>
+      <button bindtap="resetChess">重置</button>
+    </view>
+  </view>
+
+  <view wx:if="{{dialog}}" class="overlay" catchtap="closeDialog">
+    <view class="sheet" catchtap="stopTap">
+      <view class="sheet-title">{{dialog.title}}</view>
+      <block wx:if="{{dialog.kind === 'styles'}}">
+        <view class="style-grid"><button wx:for="{{styles}}" wx:key="id" class="style-choice {{theme === item.id ? 'chosen' : ''}}" data-theme="{{item.id}}" bindtap="chooseStyle">{{item.name}}</button></view>
+      </block>
+      <block wx:if="{{dialog.kind === 'add'}}">
+        <input class="field" placeholder="计时名称，例如肥牛" maxlength="20" value="{{draft.name}}" bindinput="inputName"/>
+        <view class="field-label">选择时长</view>
+        <view class="quick-row"><button wx:for="{{quickDurations}}" wx:key="*this" data-seconds="{{item}}" bindtap="selectQuick">{{item / 60}} 分钟</button></view>
+        <view class="duration-row"><input class="field duration" type="number" placeholder="分钟" value="{{draft.minutes}}" bindinput="inputMinutes"/><text>分</text><input class="field duration" type="number" placeholder="秒" value="{{draft.seconds}}" bindinput="inputSeconds"/><text>秒</text></view>
+        <view class="sheet-actions"><button bindtap="openQuickSettings">设置快捷时长</button><button class="primary" bindtap="addTimer">开始计时</button></view>
+      </block>
+      <block wx:if="{{dialog.kind === 'quick'}}">
+        <view class="hint">设置三个常用分钟数，添加时可一键选择。</view>
+        <view class="duration-row"><input wx:for="{{quickDraft}}" wx:key="index" data-index="{{index}}" class="field duration" type="number" value="{{item}}" bindinput="inputQuick"/><text>分钟</text></view>
+        <view class="sheet-actions"><button bindtap="openAdd">返回</button><button class="primary" bindtap="saveQuick">保存</button></view>
+      </block>
+      <block wx:if="{{dialog.kind === 'board' || dialog.kind === 'chess'}}">
+        <view class="hint">设置每{{dialog.kind === 'board' ? '次' : '位玩家的'}}计时时长</view>
+        <view class="duration-row"><input class="field duration" type="number" placeholder="分钟" value="{{draft.minutes}}" bindinput="inputMinutes"/><text>分</text><input class="field duration" type="number" placeholder="秒" value="{{draft.seconds}}" bindinput="inputSeconds"/><text>秒</text></view>
+        <view class="sheet-actions"><button bindtap="closeDialog">取消</button><button class="primary" bindtap="saveDuration">确定</button></view>
+      </block>
+      <block wx:if="{{dialog.kind === 'list'}}">
+        <view class="hint">离开小程序后不会响铃，回来时会按实际经过的时间补算。</view>
+        <scroll-view scroll-y class="timer-list">
+          <view wx:if="{{!list.length}}" class="hint">还没有计时</view>
+          <view class="timer-row" wx:for="{{list}}" wx:key="id"><view class="timer-detail"><text>{{item.name}}</text><text class="hint">{{item.display}} · {{item.paused ? '已暂停' : '计时中'}}</text></view><button data-id="{{item.id}}" bindtap="toggleTimer">{{item.paused ? '继续' : '暂停'}}</button><button data-id="{{item.id}}" bindtap="deleteTimer">删除</button></view>
+        </scroll-view>
+      </block>
+      <button class="close-sheet" bindtap="closeDialog">关闭</button>
+    </view>
+  </view>
+  <view wx:if="{{alert}}" class="alert-layer" catchtap="stopTap">
+    <view class="alert-signal">◌</view>
+    <view class="alert-title">时间到了</view>
+    <view class="alert-name">{{alert.name}}</view>
+    <view class="alert-over">已超时 {{alert.over}} 秒</view>
+    <view wx:if="{{alertQueue > 1}}" class="alert-over">还有 {{alertQueue - 1}} 项等待处理</view>
+    <button class="alert-button" bindtap="dismissAlert">处理好了</button>
+  </view>
+</view>

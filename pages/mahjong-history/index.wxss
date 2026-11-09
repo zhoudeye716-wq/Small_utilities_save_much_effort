@@ -4,7 +4,12 @@ page { background: #0b2115; color: #f0e3ba; }
 .eyebrow { color: #80a795; font-size: 20rpx; letter-spacing: 3rpx; }
 .heading { margin-top: 12rpx; font-size: 48rpx; font-weight: 700; letter-spacing: 3rpx; }
 .description { margin-top: 12rpx; color: #a9c2af; font-size: 26rpx; line-height: 1.5; }
-.create-button { display: flex; align-items: center; justify-content: center; min-height: 96rpx; border-radius: 22rpx; background: linear-gradient(110deg, #32926a, #1e7252); color: #fff; font-size: 32rpx; font-weight: 700; box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, .16); }
+.create-row { display: flex; align-items: stretch; gap: 14rpx; }
+.create-button { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 96rpx; border-radius: 22rpx; background: linear-gradient(110deg, #32926a, #1e7252); color: #fff; font-size: 32rpx; font-weight: 700; box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, .16); }
+.guide-choice { display: flex; flex: none; align-items: center; justify-content: center; gap: 9rpx; padding: 0 20rpx; border: 2rpx solid #799b7e; border-radius: 20rpx; background: #1e3c2c; color: #d0e2ce; font-size: 25rpx; font-weight: 700; }
+.guide-choice.enabled { border-color: #69cda5; background: #285e43; color: #effcf0; }
+.guide-check { width: 31rpx; height: 31rpx; border: 2rpx solid #b4cbb5; border-radius: 7rpx; line-height: 31rpx; text-align: center; font-size: 24rpx; }
+.guide-choice.enabled .guide-check { border-color: #8ce0b5; background: #288a62; color: white; }
 .create-plus { margin-right: 10rpx; font-size: 38rpx; font-weight: 400; }
 .people-button { display: flex; align-items: center; justify-content: space-between; min-height: 86rpx; margin-top: 16rpx; padding: 0 28rpx; border: 1rpx solid #50735b; border-radius: 18rpx; color: #c9e4d0; background: #1d3d2a; font-size: 27rpx; font-weight: 600; }
 .history-heading { display: flex; align-items: center; justify-content: space-between; margin: 48rpx 4rpx 20rpx; }

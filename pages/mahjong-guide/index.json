@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "新建麻将对局",
+  "usingComponents": {
+    "mahjong-time": "/components/mahjong-time/index"
+  }
+}

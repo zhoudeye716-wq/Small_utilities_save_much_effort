@@ -1,0 +1,86 @@
+<view class="guide-page">
+  <view class="progress">
+    <view class="progress-item {{step >= 1 ? 'current' : ''}}"><text class="progress-number">1</text><text>今天在场</text></view>
+    <view class="progress-line"></view>
+    <view class="progress-item {{step >= 2 ? 'current' : ''}}"><text class="progress-number">2</text><text>本轮上场</text></view>
+    <view class="progress-line"></view>
+    <view class="progress-item {{step >= 3 ? 'current' : ''}}"><text class="progress-number">3</text><text>对局设置</text></view>
+  </view>
+
+  <view wx:if="{{loadingError}}" class="error-banner">{{loadingError}}</view>
+  <block wx:if="{{initialized}}">
+    <block wx:if="{{step === 1}}">
+      <view class="heading">今天谁在场？</view>
+      <view class="caption">点选今天来的人，即使这一轮休息也可以选上。</view>
+      <view class="player-grid">
+        <view wx:for="{{players}}" wx:key="id" class="player-card {{item.present ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="togglePresent" hover-class="pressed">
+          <view class="check">{{item.present ? '✓' : ''}}</view>
+          <view class="player-label">{{item.name}}</view>
+          <view class="edit-name" data-id="{{item.id}}" catchtap="openRename">改昵称</view>
+        </view>
+      </view>
+      <view class="add-player" bindtap="openAddPlayer" hover-class="pressed">＋ 添加玩家</view>
+      <view class="hint">玩家昵称会保存在本机，其他对局也能使用。</view>
+    </block>
+
+    <block wx:if="{{step === 2}}">
+      <view class="heading">本轮谁上场？</view>
+      <view class="caption">从在场的人中选择 3 人或 4 人。没上场的人仍然在场。</view>
+      <view class="player-grid">
+        <block wx:for="{{players}}" wx:key="id">
+          <view wx:if="{{item.present}}" class="player-card {{item.playing ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="togglePlaying" hover-class="pressed">
+            <view class="check">{{item.playing ? '✓' : ''}}</view>
+            <view class="player-label">{{item.name}}</view>
+          </view>
+        </block>
+      </view>
+      <view class="hint">最多选 4 人，换人时请先取消一位。</view>
+    </block>
+
+    <block wx:if="{{step === 3}}">
+      <view class="heading">设置对局</view>
+      <view class="caption">先确认点数和单价，台费可以现在填写，也可以稍后再记。</view>
+      <view class="panel">
+        <view class="panel-title">每轮基础设置</view>
+        <view class="field"><text>每人初始点数</text><input type="number" value="{{initial}}" bindinput="updateInitial" placeholder="50" /><text class="unit">点</text></view>
+        <view class="field"><text>每点金额</text><input type="digit" value="{{price}}" bindinput="updatePrice" placeholder="1" /><text class="unit">元</text></view>
+      </view>
+      <view class="panel">
+        <view class="panel-heading"><text class="panel-title">台费</text><text class="optional">选填</text></view>
+        <view class="caption compact">默认由在场的人按在场时间分摊。</view>
+        <view class="field"><text>台费金额</text><input type="digit" value="{{feeAmount}}" bindinput="updateFee" placeholder="暂不填写" /><text class="unit">元</text></view>
+        <view class="subheading">谁垫付了？</view>
+        <view class="payer-list">
+          <block wx:for="{{players}}" wx:key="id"><view wx:if="{{item.present}}" class="payer-chip {{payerId === item.id ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="choosePayer">{{item.name}}</view></block>
+        </view>
+        <mahjong-time start-at="{{startAt}}" end-at="{{endAt}}" bind:change="changeTime" />
+      </view>
+    </block>
+
+    <view class="actions">
+      <button wx:if="{{step > 1}}" class="secondary" bindtap="previous">上一步</button>
+      <button class="primary" bindtap="next" loading="{{saving}}" disabled="{{saving}}">{{step === 3 ? '开始记分' : '下一步'}}</button>
+    </view>
+  </block>
+</view>
+
+<view wx:if="{{dialog}}" class="dialog-backdrop" catchtap="absorbTap">
+  <view class="dialog-card">
+    <block wx:if="{{dialog.kind === 'player'}}">
+      <view class="dialog-title">{{dialog.title}}</view>
+      <input class="dialog-input" value="{{dialog.value}}" bindinput="changeDialogValue" placeholder="输入昵称" maxlength="24" focus="{{true}}" />
+      <view wx:if="{{dialog.error}}" class="dialog-error">{{dialog.error}}</view>
+      <view class="dialog-actions"><button class="secondary" bindtap="closeDialog">取消</button><button class="primary" bindtap="savePlayer">保存</button></view>
+    </block>
+    <block wx:if="{{dialog.kind === 'defaultNames'}}">
+      <view class="dialog-title">要修改玩家昵称吗？</view>
+      <view class="dialog-note">还有玩家使用默认名称。改成昵称后，下次可以继续使用；也可以先用默认名称。</view>
+      <view class="dialog-actions"><button class="secondary" bindtap="closeDialog">返回修改</button><button class="primary" bindtap="goToPlaying">继续下一步</button></view>
+    </block>
+    <block wx:if="{{dialog.kind === 'incompleteFee'}}">
+      <view class="dialog-title">台费信息还不完整</view>
+      <view class="dialog-note">还需要填写：{{dialog.missing}}。可以返回补全，也可以暂不记录这笔台费。</view>
+      <view class="dialog-actions"><button class="secondary" bindtap="closeDialog">返回补全</button><button class="primary" bindtap="ignoreIncompleteFee">忽略并开始</button></view>
+    </block>
+  </view>
+</view>

@@ -1,0 +1,20 @@
+.time-picker { color: #c3d4c4; font-size: 26rpx; }
+.time-heading { padding-top: 18rpx; color: #e5e8d1; font-weight: 700; }
+.time-row { display: flex; min-height: 82rpx; align-items: center; justify-content: space-between; gap: 12rpx; border-bottom: 1rpx solid rgba(208, 230, 207, .1); }
+.time-value { color: #e9ddb2; text-align: right; }
+.next-day { margin-left: 5rpx; color: #88dab7; font-size: 21rpx; }
+.time-caption { margin: 14rpx 0; color: #9bbba4; font-size: 22rpx; line-height: 1.5; }
+.duration-options { display: flex; gap: 10rpx; }
+.duration { flex: 1; min-width: 0; padding: 15rpx 4rpx; border: 1rpx solid #4b745d; border-radius: 12rpx; color: #d0e5d3; background: #244b35; text-align: center; font-size: 23rpx; }
+.time-editor { margin-top: 18rpx; padding: 20rpx; border: 1rpx solid #52755e; border-radius: 16rpx; background: #102c1e; }
+.editor-heading { color: #f2e9c9; font-size: 27rpx; font-weight: 700; }
+.date-selector { margin-top: 16rpx; padding: 15rpx; border-radius: 10rpx; background: #254533; color: #e9ddb2; text-align: center; }
+.wheel-heading { display: flex; margin-top: 14rpx; text-align: center; color: #9bbba4; font-size: 21rpx; }
+.wheel-heading text { flex: 1; }
+.time-wheel { width: 100%; height: 220rpx; }
+.wheel-item { display: flex; align-items: center; justify-content: center; color: #f2e9c9; font-size: 30rpx; }
+.wheel-indicator { border-top: 1rpx solid #547360; border-bottom: 1rpx solid #547360; }
+.editor-actions { display: flex; gap: 12rpx; margin-top: 18rpx; }
+.editor-cancel, .editor-confirm { flex: 1; padding: 16rpx 4rpx; border-radius: 12rpx; text-align: center; font-weight: 700; }
+.editor-cancel { color: #c4dcc9; background: #28503a; }
+.editor-confirm { color: white; background: #218d6d; }

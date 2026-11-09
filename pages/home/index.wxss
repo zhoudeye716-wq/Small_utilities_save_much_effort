@@ -26,6 +26,7 @@
 .tool-icon.club { color: #e6e4be; background: linear-gradient(145deg, #345a28, #223f1d); }
 .tool-icon.mahjong { background: linear-gradient(145deg, #77703b, #4e512b); }
 .tool-icon.signboard { color: #e6eefe; background: linear-gradient(145deg, #3e5c97, #293b70); }
+.tool-icon.timer { color: #ebfbf6; background: linear-gradient(145deg, #40978e, #286778); }
 .tool-name { font-size: 31rpx; font-weight: 700; }
 .tool-desc { min-height: 78rpx; margin-top: 14rpx; color: #a0aec3; font-size: 22rpx; line-height: 1.6; }
 .tags { display: flex; justify-content: center; gap: 8rpx; margin-top: 18rpx; }

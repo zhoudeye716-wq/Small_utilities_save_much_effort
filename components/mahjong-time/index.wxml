@@ -1,0 +1,18 @@
+<view class="time-picker">
+  <view class="time-heading">台费时间</view>
+  <view class="time-row" data-kind="start" bindtap="editTime"><text>开始时间</text><text class="time-value">{{startLabel}} ›</text></view>
+  <view class="time-row" data-kind="end" bindtap="editTime"><text>结束时间</text><text class="time-value">{{endLabel}} <text wx:if="{{nextDay}}" class="next-day">次日</text> ›</text></view>
+  <view class="time-caption">按开始时间快捷设置结束时间</view>
+  <view class="duration-options"><view wx:for="{{[3, 4, 5, 6]}}" wx:key="*this" class="duration" data-hours="{{item}}" bindtap="chooseDuration">{{item}}小时</view></view>
+  <view wx:if="{{editing}}" class="time-editor">
+    <view class="editor-heading">{{editing === 'start' ? '设置开始时间' : '设置结束时间'}}</view>
+    <picker mode="date" value="{{draftDate}}" bindchange="changeDate"><view class="date-selector">日期 {{draftDate}}　›</view></picker>
+    <view class="wheel-heading"><text>小时</text><text>分钟</text></view>
+    <picker-view class="time-wheel" value="{{wheel}}" bindchange="changeWheel" indicator-class="wheel-indicator">
+      <picker-view-column><view wx:for="{{hours}}" wx:key="index" class="wheel-item">{{item}}</view></picker-view-column>
+      <picker-view-column><view wx:for="{{minutes}}" wx:key="index" class="wheel-item">{{item}}</view></picker-view-column>
+    </picker-view>
+    <view wx:if="{{editing === 'end'}}" class="time-caption">同一天的结束时间早于开始时间时，按次日计算。</view>
+    <view class="editor-actions"><view class="editor-cancel" bindtap="cancelEdit">取消</view><view class="editor-confirm" bindtap="confirmEdit">确定</view></view>
+  </view>
+</view>

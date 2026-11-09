@@ -73,15 +73,106 @@ function validateRound(round) {
   return { valid: true, message: '', difference: 0 };
 }
 
-function calculateFee(fee) {
+// Divide a * b by divisor without forming an unsafe intermediate product.
+// Here b is a weight and cannot exceed the total weight (divisor).
+function weightedQuotient(a, b, divisor) {
+  var quotient = 0;
+  var remainder = 0;
+  var bits = a.toString(2);
+  for (var i = 0; i < bits.length; i++) {
+    quotient *= 2;
+    if (remainder >= divisor - remainder) {
+      remainder -= divisor - remainder;
+      quotient++;
+    } else remainder += remainder;
+    if (bits.charAt(i) === '1') {
+      if (remainder >= divisor - b) {
+        remainder -= divisor - b;
+        quotient++;
+      } else remainder += b;
+    }
+  }
+  return { quotient: quotient, remainder: remainder };
+}
+
+function distribute(total, weights) {
+  var ids = Object.keys(weights);
+  var sum = 0;
+  var shares = Object.create(null);
+  for (var i = 0; i < ids.length; i++) {
+    var weight = weights[ids[i]];
+    if (!Number.isSafeInteger(weight) || weight < 0) return null;
+    sum = add(sum, weight);
+    if (sum === null) return null;
+  }
+  if (!sum) return null;
+  var ranked = [];
+  var assigned = 0;
+  ids.forEach(function (pid, index) {
+    var part = weightedQuotient(total, weights[pid], sum);
+    shares[pid] = part.quotient;
+    assigned += part.quotient;
+    ranked.push({ id: pid, remainder: part.remainder, index: index });
+  });
+  ranked.sort(function (a, b) { return b.remainder - a.remainder || a.index - b.index; });
+  for (var j = 0; j < total - assigned; j++) shares[ranked[j].id]++;
+  return shares;
+}
+
+function attendanceDuration(player, startAt, endAt) {
+  if (!Array.isArray(player.attendance)) return null;
+  var intervals = [];
+  for (var i = 0; i < player.attendance.length; i++) {
+    var item = player.attendance[i];
+    if (!item || (item.start !== null && !Number.isSafeInteger(item.start)) ||
+        (item.end !== null && !Number.isSafeInteger(item.end))) return null;
+    if (item.start !== null && item.end !== null && item.end < item.start) return null;
+    var start = Math.max(startAt, item.start === null ? startAt : item.start);
+    var end = Math.min(endAt, item.end === null ? endAt : item.end);
+    if (start < end) intervals.push({ start: start, end: end });
+  }
+  intervals.sort(function (a, b) { return a.start - b.start || a.end - b.end; });
+  var duration = 0;
+  var currentStart = null;
+  var currentEnd = null;
+  for (var j = 0; j < intervals.length; j++) {
+    var interval = intervals[j];
+    if (currentStart === null) { currentStart = interval.start; currentEnd = interval.end; }
+    else if (interval.start <= currentEnd) currentEnd = Math.max(currentEnd, interval.end);
+    else {
+      duration = add(duration, currentEnd - currentStart);
+      if (duration === null) return null;
+      currentStart = interval.start;
+      currentEnd = interval.end;
+    }
+  }
+  if (currentStart !== null) duration = add(duration, currentEnd - currentStart);
+  return duration;
+}
+
+function calculateFee(fee, session) {
   function fail(message) { return { valid: false, message: message, shares: {}, amountCents: null }; }
-  if (!fee || !distinct(fee.participants)) return fail('请选择台费分摊人员');
+  if (!fee) return fail('台费信息有误');
+  if (fee.mode !== 'time' && !distinct(fee.participants)) return fail('请选择台费分摊人员');
   if (typeof fee.payerId !== 'string' || !fee.payerId) return fail('请选择垫付人');
   var amount = money(fee.amount);
   if (amount === null) return fail('台费须为非负金额，最多两位小数');
   var shares = Object.create(null);
   var total = 0;
-  if (fee.mode === 'equal') {
+  if (fee.mode === 'time') {
+    if (!session || !Array.isArray(session.players) || !session.players.length) return fail('缺少本场玩家信息');
+    if (!Number.isSafeInteger(fee.startAt) || !Number.isSafeInteger(fee.endAt) || fee.endAt <= fee.startAt || !Number.isSafeInteger(fee.endAt - fee.startAt)) return fail('请选择有效的台费开始和结束时间');
+    var weights = Object.create(null);
+    for (var t = 0; t < session.players.length; t++) {
+      var player = session.players[t];
+      if (!player || typeof player.id !== 'string' || !player.id || Object.prototype.hasOwnProperty.call(weights, player.id)) return fail('玩家信息有误');
+      var duration = attendanceDuration(player, fee.startAt, fee.endAt);
+      if (duration === null) return fail('玩家到场或离场时间有误');
+      weights[player.id] = duration;
+    }
+    shares = distribute(amount, weights);
+    if (!shares) return fail('台费时段内没有有效在场时间，请检查人员时间');
+  } else if (fee.mode === 'equal') {
     var base = Math.floor(amount / fee.participants.length);
     var remainder = amount % fee.participants.length;
     fee.participants.forEach(function (pid, index) { shares[pid] = base + (index < remainder ? 1 : 0); });
@@ -97,6 +188,79 @@ function calculateFee(fee) {
     if (total !== amount) return fail('分摊金额合计须等于台费总额');
   } else return fail('请选择台费分摊方式');
   return { valid: true, message: '', shares: shares, amountCents: amount };
+}
+
+function getFeeTotals(session) {
+  function fail(message) { return { valid: false, message: message, totalFeeCents: 0, shares: {}, paid: {} }; }
+  if (!session || !Array.isArray(session.players) || !session.players.length) return fail('请先添加玩家');
+  var shares = Object.create(null);
+  var paid = Object.create(null);
+  for (var p = 0; p < session.players.length; p++) {
+    var player = session.players[p];
+    if (!player || typeof player.id !== 'string' || !player.id || Object.prototype.hasOwnProperty.call(shares, player.id)) return fail('玩家信息有误');
+    shares[player.id] = 0;
+    paid[player.id] = 0;
+  }
+  var fees = Array.isArray(session.fees) ? session.fees : [];
+  var total = 0;
+  for (var f = 0; f < fees.length; f++) {
+    var fee = fees[f];
+    var result = calculateFee(fee, session);
+    if (!result.valid) return fail('第 ' + (f + 1) + ' 笔台费：' + result.message);
+    if (!Object.prototype.hasOwnProperty.call(paid, fee.payerId)) return fail('台费垫付人不存在');
+    total = add(total, result.amountCents);
+    paid[fee.payerId] = add(paid[fee.payerId], result.amountCents);
+    if (total === null || paid[fee.payerId] === null) return fail('台费超出可计算范围');
+    var ids = Object.keys(result.shares);
+    for (var i = 0; i < ids.length; i++) {
+      var pid = ids[i];
+      if (!Object.prototype.hasOwnProperty.call(shares, pid)) return fail('台费分摊人员不存在');
+      shares[pid] = add(shares[pid], result.shares[pid]);
+      if (shares[pid] === null) return fail('台费超出可计算范围');
+    }
+  }
+  if (session.manualFeeShares != null) {
+    var manual = session.manualFeeShares;
+    if (typeof manual !== 'object' || Array.isArray(manual)) return fail('手动台费分摊信息有误');
+    var manualIds = Object.keys(manual);
+    var manualTotal = 0;
+    for (var m = 0; m < manualIds.length; m++) {
+      var mid = manualIds[m];
+      if (!Object.prototype.hasOwnProperty.call(shares, mid) || !Number.isSafeInteger(manual[mid]) || manual[mid] < 0) return fail('手动台费分摊信息有误');
+      manualTotal = add(manualTotal, manual[mid]);
+      if (manualTotal === null) return fail('手动台费超出可计算范围');
+    }
+    if (manualTotal !== total) return fail('手动台费分摊合计须等于台费总额');
+    Object.keys(shares).forEach(function (pid) { shares[pid] = Object.prototype.hasOwnProperty.call(manual, pid) ? manual[pid] : 0; });
+  }
+  return { valid: true, message: '', totalFeeCents: total, shares: shares, paid: paid };
+}
+
+function redistributeFee(totalCents, weightsById, targetId, targetCents) {
+  function fail(message) { return { valid: false, message: message, shares: {} }; }
+  if (!Number.isSafeInteger(totalCents) || totalCents < 0 || !Number.isSafeInteger(targetCents) || targetCents < 0 || targetCents > totalCents || !weightsById || typeof weightsById !== 'object' || Array.isArray(weightsById)) return fail('调整金额有误');
+  var ids = Object.keys(weightsById);
+  if (ids.indexOf(targetId) < 0) return fail('请选择有效的分摊人员');
+  var others = Object.create(null);
+  for (var i = 0; i < ids.length; i++) {
+    var weight = weightsById[ids[i]];
+    if (!Number.isSafeInteger(weight) || weight < 0) return fail('默认分摊金额有误');
+    if (ids[i] !== targetId) others[ids[i]] = weight;
+  }
+  var remainder = totalCents - targetCents;
+  var shares = Object.create(null);
+  if (remainder) {
+    shares = distribute(remainder, others);
+    if (!shares) {
+      var otherIds = Object.keys(others);
+      if (!otherIds.length) return fail('没有其他人员可分配剩余金额');
+      otherIds.forEach(function (pid) { others[pid] = 1; });
+      shares = distribute(remainder, others);
+      if (!shares) return fail('分配金额超出可计算范围');
+    }
+  } else Object.keys(others).forEach(function (pid) { shares[pid] = 0; });
+  shares[targetId] = targetCents;
+  return { valid: true, message: '', shares: shares };
 }
 
 function formatMoney(cents) {
@@ -181,6 +345,7 @@ function summarize(session, includeFees) {
   if (!rounds.length) return fail('请至少填写一轮点数');
   for (var r = 0; r < rounds.length; r++) {
     var round = rounds[r];
+    if (session.rulesVersion === 2 && (!round || !Array.isArray(round.participants) || (round.participants.length !== 3 && round.participants.length !== 4))) return fail('第 ' + (r + 1) + ' 轮：请选择 3 人或 4 人上场');
     var check = validateRound(round);
     if (!check.valid) return fail('第 ' + (r + 1) + ' 轮：' + check.message);
     var initial = integer(round.initial, true);
@@ -197,23 +362,12 @@ function summarize(session, includeFees) {
     players[j].gameCents = players[j].points * price;
     if (!Number.isSafeInteger(players[j].gameCents)) return fail('麻将金额超出可计算范围');
   }
-  var fees = Array.isArray(session.fees) ? session.fees : [];
-  var totalFee = 0;
-  for (var f = 0; f < fees.length; f++) {
-    var fee = fees[f];
-    var result = calculateFee(fee);
-    if (!result.valid) return fail('第 ' + (f + 1) + ' 笔台费：' + result.message);
-    if (!byId[fee.payerId]) return fail('台费垫付人不存在');
-    totalFee = add(totalFee, result.amountCents);
-    var payer = byId[fee.payerId];
-    payer.feePaidCents = add(payer.feePaidCents, result.amountCents);
-    if (totalFee === null || payer.feePaidCents === null) return fail('台费超出可计算范围');
-    for (var s = 0; s < fee.participants.length; s++) {
-      var person = byId[fee.participants[s]];
-      if (!person) return fail('台费分摊人员不存在');
-      person.feeShareCents = add(person.feeShareCents, result.shares[person.id]);
-      if (person.feeShareCents === null) return fail('台费超出可计算范围');
-    }
+  var totals = getFeeTotals(session);
+  if (!totals.valid) return fail(totals.message);
+  var totalFee = totals.totalFeeCents;
+  for (var f = 0; f < players.length; f++) {
+    players[f].feePaidCents = totals.paid[players[f].id];
+    players[f].feeShareCents = totals.shares[players[f].id];
   }
   var entities = [];
   var groupEntities = Object.create(null);
@@ -245,4 +399,4 @@ function summarize(session, includeFees) {
   return { valid: true, message: '', players: players, transfers: makeTransfers(entities), totalFeeCents: totalFee };
 }
 
-module.exports = { createSession: createSession, createRound: createRound, createFee: createFee, validateRound: validateRound, calculateFee: calculateFee, summarize: summarize, formatMoney: formatMoney };
+module.exports = { createSession: createSession, createRound: createRound, createFee: createFee, validateRound: validateRound, calculateFee: calculateFee, getFeeTotals: getFeeTotals, redistributeFee: redistributeFee, summarize: summarize, formatMoney: formatMoney };

@@ -5,8 +5,9 @@
     <view class="description">记录点数和台费，最后轻松算清楚</view>
   </view>
 
-  <view class="create-button" role="button" aria-label="新建麻将对局" bindtap="createSession">
-    <text class="create-plus">＋</text><text>新建对局</text>
+  <view class="create-row">
+    <view class="create-button" role="button" aria-label="新建麻将对局" bindtap="createSession"><text class="create-plus">＋</text><text>新建对局</text></view>
+    <view class="guide-choice {{guideEnabled ? 'enabled' : ''}}" role="checkbox" aria-checked="{{guideEnabled}}" bindtap="toggleGuide"><text class="guide-check">{{guideEnabled ? '✓' : ''}}</text><text>新手引导</text></view>
   </view>
   <view class="people-button" role="button" aria-label="管理全局玩家和组合" bindtap="managePeople"><text>玩家与组合</text><text>管理 ›</text></view>
 

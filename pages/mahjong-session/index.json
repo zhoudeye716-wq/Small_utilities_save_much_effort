@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "麻将清算",
   "navigationBarBackgroundColor": "#17632f",
-  "navigationBarTextStyle": "white"
+  "navigationBarTextStyle": "white",
+  "usingComponents": { "mahjong-time": "/components/mahjong-time/index" }
 }

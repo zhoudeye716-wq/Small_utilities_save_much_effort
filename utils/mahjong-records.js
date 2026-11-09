@@ -33,6 +33,8 @@ function createSnapshot(session, timestamp) {
       players: withFee.players.filter(function (player) {
         var original = session.players.filter(function (item) { return item.id === player.id; })[0];
         if (original && original.active !== false) return true;
+        if (original && session.rulesVersion === 2 && Array.isArray(original.attendance) && original.attendance.length) return true;
+        if (player.feeShareCents !== 0 || player.feePaidCents !== 0) return true;
         return (session.rounds || []).some(function (round) { return round.participants.indexOf(player.id) >= 0; }) ||
           (session.fees || []).some(function (fee) { return fee.payerId === player.id || fee.participants.indexOf(player.id) >= 0; });
       }).map(function (player) {
