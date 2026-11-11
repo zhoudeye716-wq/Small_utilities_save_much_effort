@@ -38,8 +38,11 @@ Page({
     if(wx.createInnerAudioContext){this.audio=wx.createInnerAudioContext();this.audio.src='/assets/timer-alert.wav';this.audio.obeyMuteSwitch=false;}
     if(wx.onAccelerometerChange){
       this.accelHandler=function(v){
-        var x=Number(v.x)||0,y=Number(v.y)||0,mag=Math.sqrt(x*x+y*y);
-        if(mag>.2){page.accel.x=page.accel.x*.8+x/mag*.2;page.accel.y=page.accel.y*.8-y/mag*.2;}
+        var x=Number(v.x),y=Number(v.y);
+        if(!isFinite(x)||!isFinite(y))return;
+        var mag=Math.sqrt(x*x+y*y),scale=mag>1?1/mag:1;
+        page.accel.x=page.accel.x*.8-x*scale*.2;
+        page.accel.y=page.accel.y*.8+y*scale*.2;
       };
       wx.onAccelerometerChange(this.accelHandler);
       if(wx.startAccelerometer)wx.startAccelerometer({interval:'game',fail:function(){}});
@@ -51,7 +54,7 @@ Page({
   onUnload:function(){this.stopPage();},
   onResize:function(){var info=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();this.windowWidth=info.windowWidth;this.lastSignature='';this.tick();if(this.visible&&this.data.mode==='multi')this.prepareCanvas();},
   stopPage:function(){
-    this.visible=false;clearInterval(this.timer);clearTimeout(this.frameTimer);this.timer=null;this.frameTimer=null;
+    this.visible=false;clearInterval(this.timer);this.stopFrame();this.timer=null;
     if(this.audio){this.audio.stop();this.audio.destroy();this.audio=null;}
     if(this.accelHandler&&wx.offAccelerometerChange)wx.offAccelerometerChange(this.accelHandler);
     if(this.accelHandler&&wx.stopAccelerometer)wx.stopAccelerometer();this.accelHandler=null;
@@ -97,11 +100,17 @@ Page({
   },
   switchMode:function(event){
     var page=this,mode=event.currentTarget.dataset.mode;if(mode===this.data.mode)return;
-    clearTimeout(this.frameTimer);this.bubbles=null;this.setData({mode:mode,dialog:null},function(){if(mode==='multi')page.prepareCanvas();});
+    this.stopFrame();this.bubbles=null;this.setData({mode:mode,dialog:null},function(){if(mode==='multi')page.prepareCanvas();});
+  },
+  stopFrame:function(){
+    this.frameGeneration=(this.frameGeneration||0)+1;
+    clearTimeout(this.frameTimer);this.frameTimer=null;
+    if(this.frameCanvas&&this.frameRequest!=null&&this.frameCanvas.cancelAnimationFrame)this.frameCanvas.cancelAnimationFrame(this.frameRequest);
+    this.frameRequest=null;this.frameCanvas=null;this.lastFrameAt=null;
   },
   prepareCanvas:function(){
     if(!this.visible||this.data.mode!=='multi')return;
-    var page=this,revision=(this.canvasRevision||0)+1;this.canvasRevision=revision;clearTimeout(this.frameTimer);
+    var page=this,revision=(this.canvasRevision||0)+1;this.canvasRevision=revision;this.stopFrame();
     wx.createSelectorQuery().in(this).select('#bubble-viewport').boundingClientRect(function(rect){
       if(!rect||page.canvasRevision!==revision||!page.visible||page.data.mode!=='multi')return;
       page.viewportRect=rect;
@@ -121,8 +130,12 @@ Page({
   drawFrame:function(){
     if(!this.visible||this.data.mode!=='multi'||!this.bubbles)return;
     var now=Date.now(),active=this.items.filter(function(t){return !t.paused&&!t.due;}).map(function(t){return {id:t.id,name:t.name,remaining:remaining(t,now)};}).sort(function(a,b){return a.remaining-b.remaining;});
-    this.bubbles.sync(active);this.bubbles.setGravity(this.accel.x,this.accel.y);this.bubbles.draw(this.data.theme,now);
-    var page=this;this.frameTimer=setTimeout(function(){page.drawFrame();},33);
+    var delta=this.lastFrameAt==null?1000/90:Math.max(0,Math.min(now-this.lastFrameAt,66));this.lastFrameAt=now;
+    this.bubbles.sync(active);this.bubbles.setGravity(this.accel.x,this.accel.y);this.bubbles.draw(this.data.theme,now,delta);
+    var page=this,node=this.bubbles.canvas,generation=this.frameGeneration;
+    if(node&&typeof node.requestAnimationFrame==='function'){
+      this.frameCanvas=node;this.frameRequest=node.requestAnimationFrame(function(){if(page.frameGeneration!==generation)return;page.frameRequest=null;page.drawFrame();});
+    }else this.frameTimer=setTimeout(function(){if(page.frameGeneration!==generation)return;page.frameTimer=null;page.drawFrame();},1000/90);
   },
   onBubbleScroll:function(event){this.bubbleScrollTop=event.detail.scrollTop||0;},
   bubbleTouchStart:function(event){var t=event.touches&&event.touches[0],rect=this.viewportRect;if(t&&rect)this.touch={x:t.clientX-rect.left,y:t.clientY-rect.top+(this.bubbleScrollTop||0),clientX:t.clientX,clientY:t.clientY};},

@@ -1,0 +1,80 @@
+{
+  "miniVersion": "v2",
+  "name": "小工具省更多",
+  "version": "1.0.7",
+  "versionCode": 107,
+  "i18nFilePath": "i18n",
+  "mini-ohos": {
+    "sdkVersion": "0.5.1"
+  },
+  "mini-android": {
+    "resourcePath": "miniapp/android/nativeResources",
+    "sdkVersion": "1.7.0",
+    "toolkitVersion": "0.11.0",
+    "useExtendedSdk": {
+      "media": false,
+      "bluetooth": false,
+      "network": true,
+      "scanner": false,
+      "install": true,
+      "xweb": true
+    },
+    "icons": {
+      "hdpi": "miniapp/android/icons/hdpi.png",
+      "xhdpi": "miniapp/android/icons/xhdpi.png",
+      "xxhdpi": "miniapp/android/icons/xxhdpi.png",
+      "xxxhdpi": "miniapp/android/icons/xxxhdpi.png"
+    },
+    "splashscreen": {
+      "hdpi": "",
+      "xhdpi": "",
+      "xxhdpi": ""
+    },
+    "enableVConsole": "close",
+    "privacy": {
+      "enable": false
+    },
+    "targetSdkVersion": 34,
+    "gdt": {
+      "splashAd_fetchDelay": 0
+    },
+    "appMenuEnable": false
+  },
+  "mini-ios": {
+    "sdkVersion": "1.7.0",
+    "toolkitVersion": "0.0.9",
+    "useExtendedSdk": {
+      "WeAppOpenFuns": true,
+      "WeAppNetwork": true,
+      "WeAppBluetooth": false,
+      "WeAppMedia": false,
+      "WeAppLBS": false,
+      "WeAppOthers": false
+    },
+    "enableVConsole": "close",
+    "icons": {
+      "mainIcon120": "",
+      "mainIcon180": "",
+      "spotlightIcon80": "",
+      "spotlightIcon120": "",
+      "settingsIcon58": "",
+      "settingsIcon87": "",
+      "notificationIcon40": "",
+      "notificationIcon60": "",
+      "appStore1024": ""
+    },
+    "splashScreen": {
+      "customImage": ""
+    },
+    "privacy": {
+      "enable": false
+    },
+    "enableOpenUrlNavigate": true,
+    "gdt": {
+      "splashAd_fetchDelay": 0,
+      "splashAd_defaultEnable": false
+    },
+    "enableAutoCompletePrivacyDesc": false,
+    "appMenuEnable": false
+  }
+}

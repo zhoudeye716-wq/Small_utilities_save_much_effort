@@ -34,11 +34,40 @@
       <view class="tool-desc"><view>桌游 · 对战 · 多项计时</view><view>泡泡提醒 · 自由切换风格</view></view>
       <view class="tags"><text>计时</text><text>提醒</text></view>
     </view>
+    <view class="tool-card active" bindtap="openGuessSize">
+      <view class="tool-icon guess-size">💣</view>
+      <view class="tool-name">猜大小</view>
+      <view class="tool-desc"><view>同机轮流猜数</view><view>范围越小 · 心跳越快</view></view>
+      <view class="tags"><text>桌游</text><text>横屏</text></view>
+    </view>
+    <view class="tool-card active" bindtap="openLanTest">
+      <view class="tool-icon lan-test">📡</view>
+      <view class="tool-name">局域网联机测试</view>
+      <view class="tool-desc"><view>多设备建房 · 消息收发</view><view>测试延迟与传输质量</view></view>
+      <view class="tags"><text>Wi-Fi</text><text>测试</text></view>
+    </view>
     <view class="tool-card disabled" wx:for="{{comingSoon}}" wx:key="title">
       <view class="tool-icon">{{item.icon}}</view>
       <view class="tool-name">{{item.title}}</view>
       <view class="tool-desc">敬请期待...</view>
     </view>
   </view>
-  <view class="home-footer">所有工具 · 随心搭配</view>
+  <view class="home-footer">所有工具 · 随心搭配<text wx:if="{{appVersion}}"> · v{{appVersion}}</text></view>
+</view>
+<view wx:if="{{update}}" class="update-mask" catchtouchmove="stopUpdateTap">
+  <view class="update-dialog" role="dialog" aria-label="发现新版本">
+    <view class="update-title">发现新版本</view>
+    <view class="update-versions">当前版本 {{update.current}} <text>→</text> 最新版本 {{update.version}}</view>
+    <view class="update-label">更新内容</view>
+    <scroll-view class="update-notes" scroll-y="true">{{update.notes}}</scroll-view>
+    <view wx:if="{{updateStatus === 'downloading' || updateStatus === 'opening' || updateStatus === 'installing'}}" class="update-progress">
+      <view class="update-progress-label">{{updateStatus === 'downloading' ? '正在下载' : '正在打开安装界面'}} {{updateProgress}}%</view>
+      <progress percent="{{updateProgress}}" stroke-width="6" activeColor="#50c9b0" backgroundColor="#314359" />
+    </view>
+    <view wx:if="{{updateError}}" class="update-error">{{updateError}}</view>
+    <view class="update-actions">
+      <button wx:if="{{!(updateStatus === 'downloading' || updateStatus === 'opening')}}" class="update-later" bindtap="dismissUpdate">{{updateStatus === 'installing' ? '关闭' : '暂不更新'}}</button>
+      <button wx:if="{{updateStatus === 'ready' || updateStatus === 'error'}}" class="update-now" bindtap="startUpdate">{{updateStatus === 'error' ? '重试' : '立即更新'}}</button>
+    </view>
+  </view>
 </view>

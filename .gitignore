@@ -1,0 +1,14 @@
+# Android / iOS signing credentials and local release artifacts
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.mobileprovision
+*.apk
+*.aab
+*.ipa
+debug/
+release/
+
+# Local WeChat developer settings
+project.private.config.json

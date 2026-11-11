@@ -13,7 +13,9 @@
     "pages/mahjong-people/index",
     "pages/signboard-list/index",
     "pages/signboard/index",
-    "pages/timer/index"
+    "pages/timer/index",
+    "pages/guess-size/index",
+    "pages/lan-test/index"
   ],
   "window": {
     "navigationBarTitleText": "小工具省更多",

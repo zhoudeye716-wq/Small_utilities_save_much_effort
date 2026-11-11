@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="hero"><view class="eyebrow">LOCAL NETWORK LAB</view><view class="title">局域网联机测试</view><view class="sub">用多台设备验证建房、消息和传输质量</view></view>
+  <view class="notice" wx:if="{{!supported}}">当前微信环境不支持 UDP 接口，请使用手机或平板微信进行测试。</view>
+  <view class="card">
+    <view class="card-title">本机信息 <text class="status">{{status}}</text></view>
+    <view class="meta">{{environment}}</view>
+    <view class="meta">网络：{{network}}　·　局域网 IP：{{ip}}</view>
+    <view class="label">设备名称</view>
+    <input class="input" maxlength="24" value="{{name}}" bindinput="editName" placeholder="输入设备名称" />
+    <view class="row buttons"><button class="primary" bindtap="createRoom" disabled="{{!supported}}">创建房间</button><button bindtap="search" disabled="{{!supported}}">搜索房间</button></view>
+    <view class="hint">所有设备请连接同一 Wi-Fi 或热点，广播搜索的结果以真机为准。</view>
+  </view>
+  <view class="card" wx:if="{{roomState === 'hosting' || roomState === 'joined'}}">
+    <view class="card-title">{{roomName}}</view>
+    <view class="meta">{{role === 'host' ? '房主' : '成员'}} · 房间 {{roomId}}</view>
+    <view class="meta" wx:if="{{role === 'host'}}">加入地址：{{ip}}　端口：{{port}}</view>
+    <view class="hint" wx:if="{{role === 'host'}}">其他设备搜索不到时，可用上面的 IP 和端口手动加入。</view>
+    <view wx:if="{{role === 'guest' && roomMembers.length}}" class="meta">房间成员（由房主提供）：<text wx:for="{{roomMembers}}" wx:key="id">{{item.name}}　</text></view>
+    <button class="small" bindtap="leave">退出房间</button>
+  </view>
+  <view class="card" wx:if="{{rooms.length}}">
+    <view class="card-title">发现的房间</view>
+    <view class="list-item" wx:for="{{rooms}}" wx:key="room" data-index="{{index}}" bindtap="joinFound">
+      <view><view>{{item.name}}</view><view class="meta">{{item.address}}:{{item.port}}</view></view><text class="link">加入 ›</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="card-title">手动加入</view>
+    <view class="hint">输入房主设备显示的局域网 IP 与端口。</view>
+    <view class="row address"><input class="input grow" type="text" value="{{address}}" bindinput="editAddress" placeholder="例如 192.168.1.2" /><input class="input port" type="number" value="{{manualPort}}" bindinput="editPort" placeholder="端口" /></view>
+    <view class="row buttons"><button bindtap="joinManual" disabled="{{!supported}}">手动加入</button><button wx:if="{{reconnect}}" bindtap="rejoin">重新加入</button></view>
+  </view>
+  <view class="card" wx:if="{{roomState === 'hosting' || roomState === 'joined'}}">
+    <view class="card-title">测试对象</view>
+    <view class="hint" wx:if="{{!peers.length}}">等待其他设备加入房间。</view>
+    <view class="peer-list"><view wx:for="{{peers}}" wx:key="id" class="peer {{selected === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectPeer">{{item.name}} <text class="peer-ip">{{item.address}}:{{item.port}}</text></view></view>
+    <view class="label">测试方向</view>
+    <view class="row choices"><view class="choice {{direction === 'local' ? 'chosen' : ''}}" data-direction="local" bindtap="setDirection">本机 → 对方</view><view class="choice {{direction === 'remote' ? 'chosen' : ''}}" data-direction="remote" bindtap="setDirection">对方 → 本机</view></view>
+    <view class="hint">反向测试会请求对方发起，若对方忙碌或请求丢失，请在对方设备操作并查看日志。</view>
+    <view class="label">单条消息</view>
+    <view class="row"><input class="input grow" maxlength="80" value="{{message}}" bindinput="editMessage" /><button class="small send" bindtap="sendMessage">发送</button></view>
+    <view class="hint" wx:if="{{messageStatus}}">{{messageStatus}}</view>
+    <view class="label">通信测试</view>
+    <view class="test-grid"><button data-kind="latency" bindtap="startTest">往返延迟<text>30 次 · 约 33 秒</text></button><button data-kind="series" bindtap="startTest">连续消息<text>100 条 · 约 10 秒</text></button><button data-kind="reliable" bindtap="startTest">可靠重发<text>30 条 · 最多重发 2 次</text></button><button data-kind="speed" bindtap="startTest">传输速度<text>250 条 · 约 5 秒</text></button></view>
+    <view class="progress" wx:if="{{progress}}">{{progress.label}} · {{progress.status === 'starting' ? '等待对方确认' : progress.status === 'awaiting_report' ? '等待接收端报告' : '进行中'}}　{{progress.sent}} / {{progress.total}}</view>
+    <view class="progress" wx:if="{{requestStatus}}">{{requestStatus}}</view>
+  </view>
+  <view class="card" wx:if="{{report}}">
+    <view class="card-title">最近一次结果</view><view class="report-title">{{report.label}} · {{report.id}}</view>
+    <view class="hint" wx:if="{{reportBeforeClear}}">这是清空日志前的结果，仅供查看，不会随本次日志复制。</view>
+    <view class="report">{{reportText}}</view>
+    <view class="hint">延迟由发起设备测量；重发测试的延迟包含重发等待。接收端等待结束消息后 0.6 秒内的迟到数据。速度只统计有效载荷，不含协议开销，时间为首包到末包的间隔。</view>
+  </view>
+  <view class="card">
+    <view class="card-title">诊断日志 <text class="status">{{events.length}} 条</text></view>
+    <view class="hint" wx:if="{{dropped}}">日志已截断 {{dropped}} 条，优先保留错误。</view>
+    <view class="notice" wx:if="{{storageError}}">本机保存失败，当前页面仍可查看并复制，请及时反馈日志。</view>
+    <view class="row filters"><text class="{{logFilter === 'all' ? 'filter-active' : ''}}" data-filter="all" bindtap="setLogFilter">全部</text><text class="{{logFilter === 'error' ? 'filter-active' : ''}}" data-filter="error" bindtap="setLogFilter">只看错误</text></view>
+    <button class="small" bindtap="clearLogs">清空日志</button>
+    <scroll-view class="logs" scroll-y><view class="event" wx:for="{{events}}" wx:key="index"><text class="event-time">{{item.time}}</text> <text class="{{item.level === 'error' ? 'error' : 'event-stage'}}">{{item.stage}}</text><view class="event-detail">{{item.detail}}</view></view></scroll-view>
+    <view class="hint">复制内容包含局域网 IP、端口、设备和微信版本、测试结果及日志，仅在点击时复制，不会自动上传。</view>
+    <button class="primary copy" bindtap="copyReport">复制结果和日志</button>
+  </view>
+</view>

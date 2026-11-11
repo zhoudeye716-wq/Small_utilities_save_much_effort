@@ -27,6 +27,8 @@
 .tool-icon.mahjong { background: linear-gradient(145deg, #77703b, #4e512b); }
 .tool-icon.signboard { color: #e6eefe; background: linear-gradient(145deg, #3e5c97, #293b70); }
 .tool-icon.timer { color: #ebfbf6; background: linear-gradient(145deg, #40978e, #286778); }
+.tool-icon.guess-size { background: linear-gradient(145deg, #8b4940, #552c36); }
+.tool-icon.lan-test { background: linear-gradient(145deg, #3d758d, #294956); }
 .tool-name { font-size: 31rpx; font-weight: 700; }
 .tool-desc { min-height: 78rpx; margin-top: 14rpx; color: #a0aec3; font-size: 22rpx; line-height: 1.6; }
 .tags { display: flex; justify-content: center; gap: 8rpx; margin-top: 18rpx; }
@@ -34,3 +36,17 @@
 .tags text:nth-child(2) { color: #c2a9ef; background: rgba(132, 88, 192, .32); }
 .tags text:nth-child(3) { color: #e6ca6a; background: rgba(169, 126, 26, .32); }
 .home-footer { margin-top: 56rpx; color: #7888a1; text-align: center; font-size: 23rpx; letter-spacing: 2rpx; }
+.update-mask { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 36rpx; background: rgba(3, 10, 20, .76); }
+.update-dialog { width: 100%; max-width: 620rpx; box-sizing: border-box; padding: 36rpx; border: 1rpx solid rgba(175, 209, 227, .18); border-radius: 28rpx; background: #1c2b40; color: #eff8fa; }
+.update-title { font-size: 38rpx; font-weight: 700; }
+.update-versions { margin-top: 18rpx; color: #a5b9c8; font-size: 25rpx; }
+.update-versions text { color: #67d5bf; padding: 0 8rpx; }
+.update-label { margin-top: 30rpx; font-size: 27rpx; font-weight: 600; }
+.update-notes { max-height: 350rpx; margin-top: 12rpx; color: #c4d2da; font-size: 25rpx; line-height: 1.65; white-space: pre-wrap; }
+.update-progress { margin-top: 28rpx; }
+.update-progress-label { margin-bottom: 12rpx; color: #b6d9d1; font-size: 24rpx; }
+.update-error { margin-top: 24rpx; color: #ffa6a6; font-size: 24rpx; }
+.update-actions { display: flex; gap: 18rpx; margin-top: 32rpx; }
+.update-actions button { flex: 1; margin: 0; border: 0; border-radius: 16rpx; font-size: 26rpx; line-height: 80rpx; }
+.update-later { color: #d6e1e7; background: #35465a; }
+.update-now { color: #fff; background: #218a77; }

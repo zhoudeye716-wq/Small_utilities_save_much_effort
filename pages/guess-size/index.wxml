@@ -1,0 +1,91 @@
+<view class="guess-page">
+  <view class="guess-header" style="padding-top: {{headerTop}}px; height: {{headerHeight}}px;">
+    <button class="guess-back" bindtap="goBack" aria-label="返回">‹ 返回</button>
+    <text>猜大小</text>
+  </view>
+
+  <scroll-view wx:if="{{screen === 'resume' || screen === 'setup'}}" scroll-y class="setup-scroll">
+    <view wx:if="{{screen === 'resume'}}" class="menu-panel resume-panel">
+      <text class="menu-tag">爆破舱</text>
+      <text class="menu-title">还有一局未结束</text>
+      <text class="saved-range">{{left}} <text class="range-dash">–</text> {{right}}</text>
+      <view class="menu-actions">
+        <button class="action" bindtap="openSetup">新开一局</button>
+        <button class="action primary" bindtap="resumeRound">继续对局</button>
+      </view>
+    </view>
+    <view wx:else class="menu-panel">
+      <text class="menu-tag">爆破舱</text>
+      <text class="menu-title">开局设置</text>
+      <view class="range-form">
+        <view class="bound-field">
+          <text>下限</text>
+          <input id="lower-input" type="number" maxlength="4" value="{{form.lower}}" data-bound="lower" bindinput="updateRange" aria-label="初始下限" />
+        </view>
+        <text class="range-dash">–</text>
+        <view class="bound-field">
+          <text>上限</text>
+          <input id="upper-input" type="number" maxlength="4" value="{{form.upper}}" data-bound="upper" bindinput="updateRange" aria-label="初始上限" />
+        </view>
+      </view>
+      <view class="feedback-options">
+        <label class="feedback-option"><text>爆破音</text><switch checked="{{form.sound}}" data-option="sound" bindchange="updateFeedback" color="#b86f3c" aria-label="爆破音" /></label>
+        <label class="feedback-option"><text>振动</text><switch checked="{{form.vibration}}" data-option="vibration" bindchange="updateFeedback" color="#b86f3c" aria-label="振动" /></label>
+      </view>
+      <view class="menu-notice">{{notice || '可设置 0–9999，开局两端均可猜'}}</view>
+      <button class="action primary start" bindtap="startNewRound">开始新局</button>
+    </view>
+  </scroll-view>
+
+  <view wx:elif="{{screen === 'play'}}" class="game-slot">
+    <view class="heartbeat {{motion ? 'heartbeat-paused' : ''}}" style="animation-duration: {{beatMs}}ms;">
+      <view class="chamber {{motion}}">
+        <view class="game-hud">
+          <text class="menu-tag">爆破舱</text>
+          <text class="game-notice">{{notice}}</text>
+          <text class="pace">♥ {{pace}}</text>
+        </view>
+        <view class="arena">
+          <view class="cell boundary {{leftOpen ? 'excluded' : ''}} {{motion === 'impact-left' ? 'struck' : ''}}">
+            <text class="caption">左界</text>
+            <text id="left-bound" class="number">{{left}}</text>
+            <text class="caption">{{leftOpen ? '已排除' : '可猜'}}</text>
+          </view>
+          <view class="cell entry" bindtap="clearInput" aria-role="button" aria-label="清空本次输入">
+            <text class="caption">本次输入</text>
+            <text class="number entry-number {{flightNumber ? 'entry-blank' : ''}}">{{input || '—'}}</text>
+            <text class="caption">点这里清空</text>
+          </view>
+          <view class="cell boundary {{rightOpen ? 'excluded' : ''}} {{motion === 'impact-right' ? 'struck' : ''}}">
+            <text class="caption">右界</text>
+            <text id="right-bound" class="number">{{right}}</text>
+            <text class="caption">{{rightOpen ? '已排除' : '可猜'}}</text>
+          </view>
+          <view wx:if="{{flightNumber}}" id="flight-carrier" class="flight-carrier" bindanimationend="onFlightEnd">
+            <view class="flight-glyph number">
+              <text class="echo" aria-hidden="true">{{flightNumber}}</text>
+              <text class="flying-number">{{flightNumber}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="keypad">
+          <button wx:for="{{digits}}" wx:key="*this" class="key" data-digit="{{item}}" bindtap="pressDigit">{{item}}</button>
+          <button class="key confirm" bindtap="submitGuess">确定</button>
+        </view>
+        <view wx:if="{{motion === 'burst'}}" class="burst-flare">
+          <view class="debris"><view></view><view></view><view></view><view></view><view></view><view></view><view></view><view></view></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="result-slot">
+    <view class="result-panel">
+      <text class="result-title">爆雷了</text>
+      <text class="result-number">{{resultNumber}}</text>
+      <text class="caption">本局炸弹数字</text>
+      <text wx:if="{{notice}}" class="menu-notice">{{notice}}</text>
+      <button class="action primary replay" bindtap="replayRound">再来一局</button>
+    </view>
+  </view>
+</view>
