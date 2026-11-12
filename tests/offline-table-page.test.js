@@ -62,14 +62,27 @@ test('房主离线时牌桌保留但停止玩家操作',function(){
  var page=Object.assign({},pageDefinition,{data:JSON.parse(JSON.stringify(pageDefinition.data))});page.setData=function(v){Object.assign(this.data,v);};page.onLoad({mode:'lan'});
  assert.equal(page.data.canAct,false);assert.equal(page.data.connection,'disconnected');delete global.getApp;
 });
-test('联机进入下一轮后仍由同一玩家行动时明确提示阶段和行动者',function(){
+test('联机进入新公共牌阶段时提示应翻的牌，并自动消失',function(){
  var t=engine.createTable({players:2,smallBlind:1,bigBlind:2,totalChips:100});t.seats.forEach(function(s,i){s.playerId='p'+i;});
  var ctx={id:'p0',role:'guest',connection:'joined',state:{hostId:'p1',table:t,players:[]},subscribe:function(){}};
  global.getApp=function(){return {lanPoker:ctx};};var page=Object.assign({},pageDefinition,{data:JSON.parse(JSON.stringify(pageDefinition.data))});page.setData=function(v){Object.assign(this.data,v);};
+ var originalSetTimeout=global.setTimeout, originalClearTimeout=global.clearTimeout, expire;
+ global.setTimeout=function(fn){expire=fn;return 1;};global.clearTimeout=function(){};
  try{page.onLoad({mode:'lan'});var next=JSON.parse(JSON.stringify(t));next.stage='flop';next.currentSeat=0;page.updateTable(next);
-  assert.match(page.data.stageNotice,/翻牌/);assert.match(page.data.stageNotice,/轮到你/);
-  var previous=page.data.stageNotice;page.updateTable(next);assert.equal(page.data.stageNotice,previous);
- }finally{page.onUnload();delete global.getApp;}
+  assert.match(page.data.stageNotice,/翻开前三张公共牌/);
+  var previous=page.data.stageNotice;page.updateTable(next);assert.equal(page.data.stageNotice,previous);expire();assert.equal(page.data.stageNotice,'');
+  next=Object.assign({},next,{stage:'turn'});page.updateTable(next);assert.match(page.data.stageNotice,/翻开第四张公共牌/);
+  next=Object.assign({},next,{stage:'river'});page.updateTable(next);assert.match(page.data.stageNotice,/翻开第五张公共牌/);
+  next=Object.assign({},next,{stage:'showdown'});page.updateTable(next);assert.match(page.data.stageNotice,/比牌/);
+ }finally{page.onUnload();global.setTimeout=originalSetTimeout;global.clearTimeout=originalClearTimeout;delete global.getApp;}
+});
+test('两位联机玩家收到同一阶段时都看到相同公共牌提示',function(){
+ var t=engine.createTable({players:2,smallBlind:1,bigBlind:2,totalChips:100});t.seats.forEach(function(s,i){s.playerId='p'+i;});
+ var pages=[];
+ try{['p0','p1'].forEach(function(id){var ctx={id:id,role:id==='p0'?'host':'guest',connection:id==='p0'?'hosting':'joined',state:{hostId:'p0',table:t,players:[]},subscribe:function(){}};
+  global.getApp=function(){return {lanPoker:ctx};};var p=Object.assign({},pageDefinition,{data:JSON.parse(JSON.stringify(pageDefinition.data))});p.setData=function(v){Object.assign(this.data,v);};p.onLoad({mode:'lan'});pages.push(p);
+ });var next=Object.assign({},t,{stage:'flop'});pages.forEach(function(p){p.updateTable(next);assert.equal(p.data.stageNotice,'请翻开前三张公共牌');});
+ }finally{pages.forEach(function(p){p.onUnload();});delete global.getApp;}
 });
 test('房主成员列表能识别离线玩家',function(){
  var t=engine.createTable({players:2,totalChips:100});t.seats.forEach(function(s,i){s.playerId='p'+i;});

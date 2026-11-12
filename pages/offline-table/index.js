@@ -3,6 +3,7 @@ var storage = require('../../utils/storage.js');
 var layout = require('../../utils/table-layout.js');
 var settlement = require('../../utils/poker-settlement.js');
 var STAGE_NAMES = { preflop: '翻牌前', flop: '翻牌', turn: '转牌', river: '河牌', showdown: '结算', waiting: '等待补充筹码', settled: '已结算' };
+var REVEAL_NOTICES = { flop: '请翻开前三张公共牌', turn: '请翻开第四张公共牌', river: '请翻开第五张公共牌', showdown: '请确认公共牌并比牌' };
 
 function seatNames(indices,table) { return indices.map(function (index) { var seat=table&&table.seats[index];return seat&&seat.name||'P' + (index + 1); }).join('、'); }
 
@@ -39,7 +40,7 @@ Page({
       if(state.table){page.updateTable(state.table);if(page.data.summary)page.openSummary();}
     });
   },
-  onHide: function () { if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
+  onHide: function () { clearTimeout(this.stageNoticeTimer);if(this.data.stageNotice)this.setData({stageNotice:''});if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
   onUnload: function () { clearTimeout(this.stageNoticeTimer);if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
   onResize: function () { this.measureTable(); },
   measureTable: function () {
@@ -94,10 +95,9 @@ Page({
     var toCall = current ? Math.max(0, table.currentBet - current.streetBet) : 0;
     if(this.data.isLan&&previous&&previous.stage!==table.stage){
       clearTimeout(this.stageNoticeTimer);
-      if(['preflop','flop','turn','river'].indexOf(table.stage)>=0){
-        var page=this,stage=STAGE_NAMES[table.stage],connected=this.data.connection==='joined'||this.data.connection==='hosting';
-        var turn=!connected?'等待连接':viewer>=0&&viewer===table.currentSeat?'轮到你行动':'等待 '+(current&&current.name||'当前玩家')+' 行动';
-        this.setData({stageNotice:'进入'+stage+'阶段 · '+turn});
+      if(!this.data.roomEnded&&REVEAL_NOTICES[table.stage]){
+        var page=this;
+        this.setData({stageNotice:REVEAL_NOTICES[table.stage]});
         this.stageNoticeTimer=setTimeout(function(){page.setData({stageNotice:''});},3500);
       }else this.setData({stageNotice:''});
     }
@@ -111,6 +111,7 @@ Page({
       if (wx.showToast) wx.showToast({ title: '牌局保存失败，请检查设备存储', icon: 'none', duration: 4000 });
     }
   },
+  ignoreStageNoticeTap: function () {},
   showError: function (message) { wx.showModal({ title: '提示', content: message, showCancel: false }); },
   toggleMenu: function () { this.setData({ menuOpen: !this.data.menuOpen }); },
   closeMenu: function () { this.setData({ menuOpen: false }); },

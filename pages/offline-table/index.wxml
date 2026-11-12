@@ -1,4 +1,11 @@
 <view class="table-page">
+  <view wx:if="{{stageNotice}}" class="stage-notice-overlay" catchtap="ignoreStageNoticeTap">
+    <view class="stage-notice-card">
+      <text class="stage-notice-label">公共牌提示</text>
+      <text class="stage-notice-title">{{stageNotice}}</text>
+      <text class="stage-notice-hint">提示将自动消失</text>
+    </view>
+  </view>
   <view wx:if="{{menuOpen}}" class="menu-backdrop" bindtap="closeMenu"></view>
   <view class="table-menu" style="top:{{menuTop}}px;right:{{menuRight}}px">
     <view class="menu-trigger" bindtap="toggleMenu" aria-role="button" aria-label="牌桌菜单">菜单 ▾</view>
@@ -48,7 +55,6 @@
         <view wx:if="{{roomEnded}}" class="settlement-hint">房间已解散，保留最后牌局供查看</view>
         <view wx:elif="{{isLan && connection !== 'joined' && connection !== 'hosting'}}" class="settlement-hint">正在等待房主连接，显示最近保存的牌局</view>
         <view class="pot-header"><text class="pot-label">底池</text><text class="pot-value">{{table.pot}}</text><text class="pot-stage">{{stageLabel}}</text></view>
-        <view wx:if="{{stageNotice}}" class="stage-notice">{{stageNotice}}</view>
         <view wx:if="{{mode}}" class="mode-hint">{{modeLabel}}<button bindtap="cancelMode">{{mode === 'winner' ? '完成' : '取消'}}</button></view>
 
         <block wx:if="{{table.stage === 'showdown'}}">
