@@ -8,7 +8,8 @@
     <view class="setting"><text>筹码单价（元）</text><input type="digit" value="{{settings.unitPrice}}" data-key="settings.unitPrice" bindinput="input" /></view>
     <view class="check" bindtap="togglePassword">{{passwordEnabled ? '☑' : '☐'}} 添加房间密码</view>
     <input wx:if="{{passwordEnabled}}" class="field" value="{{password}}" data-key="password" bindinput="input" password placeholder="输入房间密码" />
-    <view class="actions"><button bindtap="createRoom" class="primary">创建房间</button><button bindtap="searchRooms">搜索房间</button></view>
+    <view class="actions"><button bindtap="createRoom" class="primary">创建房间</button><button bindtap="searchRooms">{{searching ? '刷新搜索' : '搜索房间'}}</button></view>
+    <view wx:if="{{searching}}" class="hint">正在自动搜索附近房间，可随时刷新。</view>
     <view wx:if="{{error}}" class="error">{{error}}</view>
     <view class="hint">搜索不到时，可输入房主的局域网 IP 查询。</view><view class="actions"><input class="field" value="{{manualAddress}}" data-key="manualAddress" bindinput="input" placeholder="例如 192.168.1.2" /><button bindtap="probeRoom">按地址查询</button></view>
     <view wx:for="{{rooms}}" wx:key="id" class="room" data-index="{{index}}" bindtap="selectRoom"><text>{{item.name}}</text><text>{{item.passwordRequired ? '🔒 ' : ''}}加入 ›</text></view>

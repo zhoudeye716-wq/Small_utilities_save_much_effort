@@ -11,7 +11,7 @@ Page({
     table: null, seats: [], stageLabel: '', currentRole: '', toCall: 0, callAmount: 0,
     mode: '', modeLabel: '', pendingBet: 0, increments: [1, 5, 10, 50, 100, 500],
     pots: [], selections: [], selectedPot: -1, canChangeDealer: true,
-    layoutWidth: 800, layoutHeight: 320, menuOpen: false, menuTop: 8, menuRight: 100, topUpDialog: null, summary: null, isLan: false, isHost: false, canAct: false, roomEnded: false, connection: '', members: [], memberDialog: false
+    layoutWidth: 800, layoutHeight: 320, menuOpen: false, menuTop: 8, menuRight: 100, topUpDialog: null, summary: null, isLan: false, isHost: false, canAct: false, roomEnded: false, connection: '', members: [], memberDialog: false, stageNotice: ''
   },
   onLoad: function (options) {
     if (options && options.mode === 'lan') {
@@ -40,7 +40,7 @@ Page({
     });
   },
   onHide: function () { if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
-  onUnload: function () { if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
+  onUnload: function () { clearTimeout(this.stageNoticeTimer);if(this.lanContext&&this.lanContext.subscribe)this.lanContext.subscribe(null); },
   onResize: function () { this.measureTable(); },
   measureTable: function () {
     var self = this;
@@ -92,6 +92,15 @@ Page({
     }) : [];
     var current = table.seats[table.currentSeat];
     var toCall = current ? Math.max(0, table.currentBet - current.streetBet) : 0;
+    if(this.data.isLan&&previous&&previous.stage!==table.stage){
+      clearTimeout(this.stageNoticeTimer);
+      if(['preflop','flop','turn','river'].indexOf(table.stage)>=0){
+        var page=this,stage=STAGE_NAMES[table.stage],connected=this.data.connection==='joined'||this.data.connection==='hosting';
+        var turn=!connected?'等待连接':viewer>=0&&viewer===table.currentSeat?'轮到你行动':'等待 '+(current&&current.name||'当前玩家')+' 行动';
+        this.setData({stageNotice:'进入'+stage+'阶段 · '+turn});
+        this.stageNoticeTimer=setTimeout(function(){page.setData({stageNotice:''});},3500);
+      }else this.setData({stageNotice:''});
+    }
     this.setData({ table: table, seats: seats, pots: pots, selections: selections, stageLabel: STAGE_NAMES[table.stage] || table.stage,
       currentRole: current ? current.role : '', currentName: current ? (current.name || 'P' + (table.currentSeat + 1)) : '', toCall: toCall, callAmount: current ? Math.min(toCall, current.stack) : 0,
       canChangeDealer: engine.canChangeDealer(table), canAct: !this.data.isLan || (!this.data.roomEnded && (this.data.connection==='joined'||this.data.connection==='hosting') && viewer >= 0 && viewer === table.currentSeat) });

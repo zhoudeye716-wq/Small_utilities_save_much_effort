@@ -33,6 +33,17 @@ test('确认包丢失时保留操作，重发不会重复扣筹码',function(){
   drop=false;guest.retry();assert.equal(host.snapshot().revision,after);
  }finally{guest.close();host.close();}
 });
+test('确认包丢失且接口失效，重连重发不会重复扣筹码',function(){
+ var protocol=require('../utils/lan-poker/protocol.js'),dropAck=false,dead=false,made=0,now=1000,realNow=Date.now;Date.now=function(){return now;};
+ var socket=network(function(packet){var p=protocol.decode(packet.message);return dropAck&&p&&p.type==='operation-ack';}),found=[],results=[];
+ var host=Session.host({id:'h',name:'房主',roomId:'r',roomName:'测试',settings:{smallBlind:1,bigBlind:2,totalChips:100,unitPrice:0.1},createSocket:socket,persist:function(){return true;}});
+ var guest=Session.guest({id:'g',name:'玩家',createSocket:function(){var s=socket(),number=++made,send=s.send;s.send=function(p){if(dead&&number===1)return;send(p);};return s;},persist:function(){return true;},onRooms:function(r){found=r;},onResult:function(r){results.push(r);}});
+ try{guest.search();guest.join(found[0],'');guest.command('seat',{seat:1});host.command('start',{});host.command('call',{});
+  dropAck=true;assert.equal(guest.command('call',{}).pending,true);var pot=host.snapshot().state.table.pot;
+  dead=true;dropAck=false;now+=13000;guest.resume();guest.retry();
+  assert.equal(made,2);assert.equal(host.snapshot().state.table.pot,pot);assert.equal(results[results.length-1].ok,true);
+ }finally{Date.now=realNow;guest.close();host.close();}
+});
 test('新房间保存失败时不开放房间并释放端口',function(){
  var called=0,socket=network(),leaked;
  try { assert.throws(function(){leaked=Session.host({id:'h',name:'房主',roomId:'r',roomName:'测试',settings:{smallBlind:1,bigBlind:2,totalChips:100,unitPrice:0.1},createSocket:function(){called++;return socket();},persist:function(){return false;}});});

@@ -62,6 +62,15 @@ test('房主离线时牌桌保留但停止玩家操作',function(){
  var page=Object.assign({},pageDefinition,{data:JSON.parse(JSON.stringify(pageDefinition.data))});page.setData=function(v){Object.assign(this.data,v);};page.onLoad({mode:'lan'});
  assert.equal(page.data.canAct,false);assert.equal(page.data.connection,'disconnected');delete global.getApp;
 });
+test('联机进入下一轮后仍由同一玩家行动时明确提示阶段和行动者',function(){
+ var t=engine.createTable({players:2,smallBlind:1,bigBlind:2,totalChips:100});t.seats.forEach(function(s,i){s.playerId='p'+i;});
+ var ctx={id:'p0',role:'guest',connection:'joined',state:{hostId:'p1',table:t,players:[]},subscribe:function(){}};
+ global.getApp=function(){return {lanPoker:ctx};};var page=Object.assign({},pageDefinition,{data:JSON.parse(JSON.stringify(pageDefinition.data))});page.setData=function(v){Object.assign(this.data,v);};
+ try{page.onLoad({mode:'lan'});var next=JSON.parse(JSON.stringify(t));next.stage='flop';next.currentSeat=0;page.updateTable(next);
+  assert.match(page.data.stageNotice,/翻牌/);assert.match(page.data.stageNotice,/轮到你/);
+  var previous=page.data.stageNotice;page.updateTable(next);assert.equal(page.data.stageNotice,previous);
+ }finally{page.onUnload();delete global.getApp;}
+});
 test('房主成员列表能识别离线玩家',function(){
  var t=engine.createTable({players:2,totalChips:100});t.seats.forEach(function(s,i){s.playerId='p'+i;});
  var callback,ctx={id:'p0',role:'host',connection:'hosting',peers:{p1:{offline:true}},state:{hostId:'p0',table:t,players:[{id:'p0',name:'房主'},{id:'p1',name:'玩家'}]},subscribe:function(f){callback=f;}};

@@ -35,7 +35,7 @@ function guest(options){
    }else if(packet.type==='operation-ack'&&pending[packet.operationId]){pending[packet.operationId].result=packet.result;if(packet.result&&packet.result.ok)lastConfirmed=Math.max(lastConfirmed,packet.result.revision||0);delete pending[packet.operationId];if(options.onResult)options.onResult(packet.result);}
   }});
  var retryTimer=setInterval(function(){if(transport.status==='joined'){sendPending();transport.sendHost({type:'snapshot-request'});}},2000);
- return {search:function(){transport.search();},probe:function(address){return transport.probe(address);},join:function(room,password){transport.join(room,password);},command:function(type,data){
+ return {search:function(){transport.search();},refreshSearch:function(){if(transport.status==='searching')transport.discover();},probe:function(address){return transport.probe(address);},join:function(room,password){transport.join(room,password);},command:function(type,data){
   var snapshot=replica&&replica.snapshot();if(!snapshot)return {ok:false,error:'等待牌局同步'};
   if(snapshot.state.ended)return {ok:false,error:'房间已解散'};
   if(Object.keys(pending).length||snapshot.revision<lastConfirmed)return {ok:false,error:'等待上一操作确认和同步'};

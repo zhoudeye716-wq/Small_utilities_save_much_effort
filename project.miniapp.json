@@ -1,8 +1,8 @@
 {
   "miniVersion": "v2",
   "name": "小工具省更多",
-  "version": "1.0.8",
-  "versionCode": 108,
+  "version": "1.0.9",
+  "versionCode": 109,
   "i18nFilePath": "i18n",
   "mini-ohos": {
     "sdkVersion": "0.5.1"

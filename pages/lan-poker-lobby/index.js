@@ -3,7 +3,7 @@ var local=require('../../utils/lan-poker/storage.js');
 var offlineStorage=require('../../utils/storage.js');
 function randomId(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
 Page({
- data:{name:'',roomName:'',passwordEnabled:false,password:'',joinPassword:'',joinTarget:null,manualAddress:'',rooms:[],state:null,role:'',seats:[],inHand:false,error:'',settings:{smallBlind:'1',bigBlind:'1',totalChips:'1000',unitPrice:'0.1'}},
+ data:{name:'',roomName:'',passwordEnabled:false,password:'',joinPassword:'',joinTarget:null,manualAddress:'',rooms:[],searching:false,state:null,role:'',seats:[],inHand:false,error:'',settings:{smallBlind:'1',bigBlind:'1',totalChips:'1000',unitPrice:'0.1'}},
  onLoad:function(){
   this.store=local.create(wx);var profile=this.store.loadProfile(),settings=offlineStorage.loadState('offlineSettings',null);
   this.setData({name:profile.name||'',roomName:profile.roomName||'',settings:settings||this.data.settings});
@@ -56,10 +56,11 @@ Page({
  searchRooms:function(){
   var name=this.validateName(),page=this;if(!name)return;this.saveProfile();
   try{
+   if(this.context&&this.context.role==='guest'&&this.context.connection==='searching'&&!this.context.state&&this.searchName===name){this.context.refreshSearch();return;}
    if(this.context)this.context.close();
    this.context=context.createGuest(wx,{id:randomId(),name:name,onChange:function(){if(page.visible)page.refresh();},onRooms:function(rooms){page.setData({rooms:rooms});}});
-   getApp().lanPoker=this.context;this.attachContext();this.setData({rooms:[],error:''});this.context.search();
-  }catch(e){this.showError(e.message||'搜索房间失败');}
+   this.searchName=name;getApp().lanPoker=this.context;this.attachContext();this.setData({rooms:[],searching:true,error:''});this.context.search();
+  }catch(e){if(this.context)this.context.close();this.context=null;getApp().lanPoker=null;this.setData({searching:false});this.showError(e.message||'搜索房间失败');}
  },
  selectRoom:function(e){var room=this.data.rooms[Number(e.currentTarget.dataset.index)];if(!room)return;if(room.passwordRequired)this.setData({joinTarget:room,joinPassword:''});else this.joinRoom(room,'');},
  probeRoom:function(){if(!this.context||!this.context.probe||!this.context.probe(this.data.manualAddress.trim()))this.showError('请先搜索并输入有效的房主 IP');},
@@ -88,7 +89,7 @@ Page({
   for(var i=0;i<9;i++){var player=state&&state.players.find(function(p){return p.seat===i;});seats.push({number:i, label:player?player.name:'空座 '+(i+1),own:!!player&&player.id===ctx.id,taken:!!player});}
   var self=state&&state.players.find(function(p){return p.id===ctx.id;});
   var inHand=!!(state&&state.table&&self&&self.status==='seated'&&state.table.seats.some(function(s){return s.playerId===ctx.id;}));
-  this.setData({state:state,role:ctx.role,rooms:ctx.rooms||this.data.rooms,seats:seats,inHand:inHand,error:ctx.error||''});
+  this.setData({state:state,role:ctx.role,rooms:ctx.rooms||this.data.rooms,seats:seats,inHand:inHand,error:ctx.error||'',searching:!state&&ctx.connection==='searching'});
   if(this.visible&&inHand&&!state.ended&&!this.autoEntered){this.autoEntered=true;this.openTable();}
  },
  openTable:function(){if(!this.context||!this.context.state||!this.context.state.table)return;wx.navigateTo({url:'/pages/offline-table/index?mode=lan'});}

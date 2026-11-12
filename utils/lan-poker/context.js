@@ -37,13 +37,14 @@ function createGuest(api,options){
  ctx.session=Session.guest({id:options.id,name:options.name,createSocket:function(){return api.createUDPSocket();},
   persist:function(s){return ctx.store.saveGuest(s,{id:options.id,name:options.name,room:ctx.target,password:ctx.password});},
   onRooms:function(rooms){ctx.rooms=rooms;if(options.onRooms)options.onRooms(rooms);ctx.notify();},
-  onRejected:function(reason){ctx.error=reason;ctx.notify();},onState:function(s){ctx.state=s;ctx.notify();},
+  onRejected:function(reason){ctx.connection='searching';ctx.error=reason;ctx.notify();},onState:function(s){ctx.state=s;ctx.notify();},
   onConnection:function(s){ctx.connection=s.status;ctx.notify();},onResult:function(result){
    ctx.lastResult=result;
    if(result&&result.error){ctx.error=result.error;ctx.leaveConfirmed=null;if(api.showToast)api.showToast({title:result.error,icon:'none'});}else ctx.error='';
    if(ctx.leaveConfirmed)ctx.leaveConfirmed(result);ctx.notify();
   }});
  ctx.search=function(){ctx.connection='searching';ctx.session.search();};
+ ctx.refreshSearch=function(){ctx.session.refreshSearch();};
  ctx.probe=function(address){return ctx.session.probe(address);};
  ctx.join=function(room,password){ctx.error='';ctx.target=room;ctx.password=password||'';ctx.connection='joining';ctx.session.join(room,password);};
  return ctx;

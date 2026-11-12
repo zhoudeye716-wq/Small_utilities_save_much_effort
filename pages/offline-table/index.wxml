@@ -48,6 +48,7 @@
         <view wx:if="{{roomEnded}}" class="settlement-hint">房间已解散，保留最后牌局供查看</view>
         <view wx:elif="{{isLan && connection !== 'joined' && connection !== 'hosting'}}" class="settlement-hint">正在等待房主连接，显示最近保存的牌局</view>
         <view class="pot-header"><text class="pot-label">底池</text><text class="pot-value">{{table.pot}}</text><text class="pot-stage">{{stageLabel}}</text></view>
+        <view wx:if="{{stageNotice}}" class="stage-notice">{{stageNotice}}</view>
         <view wx:if="{{mode}}" class="mode-hint">{{modeLabel}}<button bindtap="cancelMode">{{mode === 'winner' ? '完成' : '取消'}}</button></view>
 
         <block wx:if="{{table.stage === 'showdown'}}">
@@ -59,7 +60,7 @@
           <view class="settlement-hint">{{table.message || '有玩家筹码为 0，请在右上角菜单选择“补充筹码”，再选择座位。补齐后自动开始下一局。'}}</view>
         </block>
         <block wx:else>
-          <view class="current-line"><text>当前 {{currentName}} · {{currentRole}}</text><text>需跟 {{toCall}}</text></view>
+          <view class="current-line"><text>{{isLan && canAct ? '轮到你' : '当前 ' + currentName}} · {{currentRole}}</text><text>需跟 {{toCall}}</text></view>
           <block wx:if="{{canAct && !roomEnded}}">
             <view class="chip-buttons"><button wx:for="{{increments}}" wx:key="*this" data-amount="{{item}}" bindtap="addBet">+{{item}}</button><button class="allin-button" bindtap="allIn">全下</button></view>
             <view class="bet-line"><view class="bet-amount"><text>已选下注</text><input type="number" value="{{pendingBet}}" bindinput="setPendingBet" /></view><button bindtap="clearBet">清空</button><button class="bet-button" bindtap="confirmBet">确认下注</button></view>

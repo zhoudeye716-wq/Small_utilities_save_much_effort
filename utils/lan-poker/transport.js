@@ -1,16 +1,22 @@
 var protocol=require('./protocol.js');
-var PORT=43220, BROADCAST='255.255.255.255', PEER_TTL=12000;
+var PORT=43220, BROADCAST='255.255.255.255', PEER_TTL=12000, ROOM_TTL=15000;
 function Transport(options){
  this.id=options.id;this.name=options.name;this.createSocket=options.createSocket;
  this.onRooms=options.onRooms||function(){};this.onJoin=options.onJoin||function(){return true;};
  this.onRejected=options.onRejected||function(){};this.onMessage=options.onMessage||function(){};
- this.onState=options.onState||function(){};this.peers=Object.create(null);this.rooms=Object.create(null);this.status='idle';
+ this.onState=options.onState||function(){};this.peers=Object.create(null);this.rooms=Object.create(null);this.roomSeen=Object.create(null);this.status='idle';
 }
 Transport.prototype.open=function(port){
  var self=this,socket=this.createSocket();if(!socket||!socket.onMessage||!socket.onError)throw Error('UDP 不可用');
- this.socket=socket;socket.onMessage(function(event){self.receive(event);});socket.onError(function(event){self.status='error';self.onState({status:'error',error:event});});
- var bound=socket.bind(port);if(!bound)throw Error('UDP 绑定失败');this.port=bound;
+ this.socket=socket;socket.onMessage(function(event){if(self.socket===socket)self.receive(event);});socket.onError(function(event){
+  if(self.socket!==socket)return;
+  if(self.hostId&&self.roomId&&(self.status==='joined'||self.status==='joining'||self.status==='disconnected')){
+   self.dropSocket();self.status='disconnected';self.onState({status:'disconnected',error:event});
+  }else{self.status='error';self.onState({status:'error',error:event});}
+ });
+ try{var bound=socket.bind(port);if(!bound)throw Error('UDP 绑定失败');this.port=bound;}catch(e){this.dropSocket();throw e;}
 };
+Transport.prototype.dropSocket=function(){var socket=this.socket;this.socket=null;this.port=0;if(socket)try{socket.close();}catch(e){}};
 Transport.prototype.send=function(packet,address,port){
  if(!this.socket)return false;try{this.socket.send({address:address,port:port,message:protocol.encode(Object.assign({},packet,{sender:this.id})),setBroadcast:address===BROADCAST});return true;}catch(e){return false;}
 };
@@ -20,7 +26,7 @@ Transport.prototype.host=function(room){
  this.status='hosting';this.startTimer();this.onState({status:this.status});
 };
 Transport.prototype.search=function(){
- this.close();this.rooms=Object.create(null);this.open();this.status='searching';this.startTimer();this.discover();
+ this.close();this.rooms=Object.create(null);this.roomSeen=Object.create(null);this.open();this.status='searching';this.startTimer();this.discover();
 };
 Transport.prototype.discover=function(){this.send({type:'discover'},BROADCAST,PORT);};
 Transport.prototype.probe=function(address){if(this.status!=='searching'||!/^\d{1,3}(\.\d{1,3}){3}$/.test(String(address))||String(address).split('.').some(function(n){return Number(n)>255;}))return false;return this.send({type:'discover'},address,PORT);};
@@ -36,11 +42,17 @@ Transport.prototype.receive=function(event){
  if(!p||!remote||!p.sender||p.sender===this.id)return;
  if(p.type==='discover'&&this.status==='hosting')return void this.send({type:'advertise',room:this.roomId,name:this.roomName,passwordRequired:!!this.password,ended:this.ended},remote.address,remote.port);
  if(p.type==='advertise'&&this.status==='searching'&&typeof p.room==='string'&&!p.ended){
+  this.roomSeen[p.room]=now;
   this.rooms[p.room]={id:p.room,name:String(p.name||'房间').slice(0,32),hostId:p.sender,address:remote.address,port:remote.port,passwordRequired:!!p.passwordRequired};
   return void this.onRooms(Object.keys(this.rooms).map(function(id){return self.rooms[id];}));
  }
  if(p.type==='advertise'&&(this.status==='joining'||this.status==='disconnected')&&p.room===this.roomId&&p.sender===this.hostId){
-  this.join({id:this.roomId,hostId:this.hostId,address:remote.address,port:remote.port},this.password);return;
+  if(this.status==='disconnected')this.join({id:this.roomId,hostId:this.hostId,address:remote.address,port:remote.port},this.password);
+  else if(this.hostAddress!==remote.address||this.hostPort!==remote.port){
+   this.hostAddress=remote.address;this.hostPort=remote.port;this.lastJoin=now;
+   this.send({type:'join',room:this.roomId,name:this.name,password:this.password,request:this.joinRequest},this.hostAddress,this.hostPort);
+  }
+  return;
  }
  if(p.type==='join'&&this.status==='hosting'&&p.room===this.roomId){
   if(typeof p.request!=='string'||!p.request||p.request.length>64)return;
@@ -66,11 +78,16 @@ Transport.prototype.receive=function(event){
 };
 Transport.prototype.startTimer=function(){var self=this;clearInterval(this.timer);this.timer=setInterval(function(){self.tick();},1000);};
 Transport.prototype.tick=function(){
- var self=this,now=Date.now();if(this.status==='searching')this.discover();
+ var self=this,now=Date.now();if(this.status==='searching'){
+  var changed=false;Object.keys(this.rooms).forEach(function(id){if(now-self.roomSeen[id]>ROOM_TTL){delete self.rooms[id];delete self.roomSeen[id];changed=true;}});
+  if(changed)this.onRooms(Object.keys(this.rooms).map(function(id){return self.rooms[id];}));this.discover();
+ }
  else if(this.status==='joined'){
   if(now-this.hostSeen>PEER_TTL){this.status='disconnected';this.joinRequest=null;this.onState({status:'disconnected'});}
   else this.send({type:'heartbeat',room:this.roomId},this.hostAddress,this.hostPort);
  }else if(this.status==='disconnected'){
+  this.dropSocket();
+  try{this.open();}catch(e){this.onState({status:'disconnected',error:e});return;}
   this.join({id:this.roomId,hostId:this.hostId,address:this.hostAddress,port:this.hostPort},this.password);
   if(this.status==='joining')this.discover();
  }else if(this.status==='joining'){
@@ -80,5 +97,5 @@ Transport.prototype.tick=function(){
 };
 Transport.prototype.sendPeer=function(id,packet){var peer=this.peers[id];return !!peer&&this.send(Object.assign({},packet,{room:this.roomId}),peer.address,peer.port);};
 Transport.prototype.sendHost=function(packet){return this.send(Object.assign({},packet,{room:this.roomId}),this.hostAddress,this.hostPort);};
-Transport.prototype.close=function(){clearInterval(this.timer);this.timer=null;if(this.socket){try{this.socket.close();}catch(e){}}this.socket=null;this.peers=Object.create(null);this.status='idle';};
+Transport.prototype.close=function(){clearInterval(this.timer);this.timer=null;this.dropSocket();this.peers=Object.create(null);this.status='idle';};
 Transport.PORT=PORT;module.exports=Transport;

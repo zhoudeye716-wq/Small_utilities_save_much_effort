@@ -10,6 +10,14 @@ test('房主只有在至少两人入座时才能开始',function(){
  p.startGame();assert.deepEqual(calls,[]);
  p.context.state.players.push({id:'g',name:'玩家',seat:1,status:'seated'});p.startGame();assert.deepEqual(calls,['start']);
 });
+test('重复搜索刷新当前连接，不清空已发现的房间',function(){
+ var factory=require('../utils/lan-poker/context.js'),original=factory.createGuest;
+ factory.createGuest=function(){throw Error('不应创建新连接');};
+ var p=page(),refreshes=0,closed=0,room={id:'r',name:'测试'};p.data.name='玩家';p.data.rooms=[room];
+ p.searchName='玩家';p.store={saveProfile:function(){}};
+ p.context={role:'guest',connection:'searching',state:null,refreshSearch:function(){refreshes++;},close:function(){closed++;}};
+ try{p.searchRooms();assert.equal(refreshes,1);assert.equal(closed,0);assert.deepEqual(p.data.rooms,[room]);}finally{factory.createGuest=original;}
+});
 test('大厅可选择退出房间并由上下文确认处理',function(){
  var p=page(),delta=0;p.context={leave:function(value){delta=value;}};
  p.leaveRoom();assert.equal(delta,1);

@@ -33,6 +33,7 @@
 .pot-label, .pot-stage { color: #9ebca6; font-size: 14rpx; }
 .pot-value { color: #f0d35c; font-size: 23rpx; font-weight: 800; }
 .current-line { display: flex; justify-content: space-between; margin: 4rpx 0; color: #c7e3cd; font-size: 14rpx; font-weight: 700; }
+.stage-notice { margin: 3px 0; padding: 4px 7px; border-radius: 6px; color: #f7e9a8; background: #3f582c; text-align: center; font-size: clamp(11px, 2.1vh, 16px); font-weight: 700; }
 .chip-buttons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5rpx; }
 .chip-buttons button { width: 100%; min-width: 0; min-height: 26rpx; border: 1rpx solid rgba(192, 219, 197, .2); border-radius: 7rpx; background: #274735; color: #ecedd7; font-size: 13rpx; font-weight: 700; line-height: 1.15; }
 .chip-buttons .allin-button { color: #f3ca7a; background: #51432a; }
