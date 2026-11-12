@@ -90,14 +90,14 @@ function createTable(config) {
   var count = clampPlayers(config.players);
   var stack = Math.max(0, Number(config.totalChips) || 1000);
   var seats = [];
-  for (var i = 0; i < count; i += 1) seats.push({ index: i, stack: stack, folded: false, acted: false, streetBet: 0, totalBet: 0, role: '', dealer: false });
+  for (var i = 0; i < count; i += 1) seats.push({ index: i, stack: stack, buyIn: stack, folded: false, acted: false, streetBet: 0, totalBet: 0, role: '', dealer: false });
   var state = {
     seats: seats, players: count, dealerSeat: 0, heroSeat: 0,
     pot: 0, currentBet: 0, lastRaise: Math.max(Number(config.bigBlind) || 1, Number(config.smallBlind) || 1), currentSeat: count === 2 ? 0 : 3 % count,
     stage: 'preflop', smallBlind: Math.max(0, Number(config.smallBlind) || 1),
     bigBlind: Math.max(0, Number(config.bigBlind) || 1),
     unitPrice: Number(config.unitPrice) || 0.1,
-    startStack: stack, actionStarted: false, message: '点击更换庄家可调整座位。'
+    startStack: stack, handNumber: 1, actionStarted: false, message: '点击更换庄家可调整座位。'
   };
   assignRoles(state);
   postBlinds(state);
@@ -200,6 +200,33 @@ function applyAction(state, action) {
   if (following >= 0) next.currentSeat = following;
   return { state: next };
 }
+function leaveSeat(state, seatIndex) {
+  var index = Number(seatIndex);
+  if (!Number.isInteger(index) || index < 0 || index >= state.seats.length) return {state:state,error:'无效的座位。'};
+  if (state.stage === 'waiting' || state.stage === 'settled') return {state:state,error:'当前没有进行中的小局。'};
+  if (state.seats[index].folded) return {state:state};
+  function checked(result) {
+    if (result.error) return {state:state,error:result.error};
+    if (getPots(result.state).some(function(p){return p.contributors.length>1&&!p.eligible.length;}))
+      return {state:state,error:'该玩家离场后边池将没有合格赢家，请先完成本小局结算。'};
+    return result;
+  }
+  if (index === state.currentSeat && state.stage !== 'showdown') return checked(applyAction(state, {type:'fold'}));
+  var next = JSON.parse(JSON.stringify(state));
+  next.seats[index].folded = true;
+  next.seats[index].acted = true;
+  next.actionStarted = true;
+  if (activeSeats(next).length === 1) {
+    var winner = activeSeats(next)[0];
+    next.stage = 'showdown';
+    var pots = getPots(next);
+    var result = settlePots(next, pots.map(function(pot){return pot.eligible.indexOf(winner.index)>=0?[winner.index]:[];}));
+    if (result.error) return {state:state,error:result.error};
+    return checked(result);
+  }
+  if (next.stage !== 'showdown' && allActedAndMatched(next)) return checked({state:advanceStreet(next)});
+  return checked({state:next});
+}
 function addChips(state, seatIndex, amount) {
   var next = JSON.parse(JSON.stringify(state));
   var index = Number(seatIndex);
@@ -213,9 +240,10 @@ function addChips(state, seatIndex, amount) {
     return { state: next, error: '补充后全桌筹码超出安全计算范围。' };
   }
   next.seats[index].stack += chips;
+  if (Number.isSafeInteger(next.seats[index].buyIn)) next.seats[index].buyIn += chips;
   next.message = '第 ' + (index + 1) + ' 位补充 ' + chips + ' 筹码。';
   if (next.stage === 'waiting' && next.seats.every(function (seat) { return seat.stack > 0; })) {
-    return { state: startNewHand(next, { message: '筹码已补充。' }) };
+    return { state: startNewHand(next, { message: '筹码已补充。', keepHandNumber: true }) };
   }
   return { state: next };
 }
@@ -290,13 +318,15 @@ function startNewHand(state, options) {
   var dealerSeat = next.dealerSeat;
   var fresh = {
     seats: next.seats.map(function (seat) {
-      return { index: seat.index, stack: options.resetStacks ? next.startStack : seat.stack, folded: false, acted: false, streetBet: 0, totalBet: 0, role: '', dealer: false };
+      var freshSeat = Object.assign({}, seat, { index: seat.index, stack: options.resetStacks ? next.startStack : seat.stack, folded: false, acted: false, streetBet: 0, totalBet: 0, lastActedBet: null, role: '', dealer: false });
+      if (options.resetStacks) freshSeat.buyIn = next.startStack;
+      return freshSeat;
     }),
     players: next.players, dealerSeat: dealerSeat, heroSeat: next.heroSeat,
     pot: 0, currentBet: 0, lastRaise: Math.max(next.bigBlind, next.smallBlind, 1),
     currentSeat: next.players === 2 ? dealerSeat : normalizeSeat(next, dealerSeat + 3),
     stage: 'preflop', smallBlind: next.smallBlind, bigBlind: next.bigBlind,
-    unitPrice: next.unitPrice, startStack: next.startStack, actionStarted: false, message: ''
+    unitPrice: next.unitPrice, startStack: next.startStack, handNumber: options.resetStacks ? 1 : (Number(next.handNumber) || 0) + (options.keepHandNumber ? 0 : 1), actionStarted: false, message: ''
   };
   assignRoles(fresh);
   if (fresh.seats.some(function (seat) { return seat.stack <= 0; })) {
@@ -312,4 +342,4 @@ function startNewHand(state, options) {
   return fresh;
 }
 
-module.exports = { ROLE_MAP: ROLE_MAP, createTable: createTable, canChangeDealer: canChangeDealer, setDealer: setDealer, setHero: setHero, applyAction: applyAction, addChips: addChips, getPots: getPots, settlePots: settlePots, settleHand: settleHand, startNewHand: startNewHand };
+module.exports = { ROLE_MAP: ROLE_MAP, createTable: createTable, canChangeDealer: canChangeDealer, setDealer: setDealer, setHero: setHero, applyAction: applyAction, leaveSeat: leaveSeat, addChips: addChips, getPots: getPots, settlePots: settlePots, settleHand: settleHand, startNewHand: startNewHand };

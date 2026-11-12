@@ -1,5 +1,5 @@
-var RELEASE_URL = 'https://gitee.com/api/v5/repos/bigpoint/total-release/releases?per_page=100';
-var ASSET_PREFIX = 'https://gitee.com/bigpoint/total-release/';
+var RELEASE_URL = 'https://gitee.com/api/v5/repos/bigpoint/Small_utilities_save_much_effort/releases?per_page=100';
+var ASSET_PREFIX = 'https://gitee.com/bigpoint/Small_utilities_save_much_effort/';
 
 function parseVersion(value) {
   var m = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(String(value || ''));

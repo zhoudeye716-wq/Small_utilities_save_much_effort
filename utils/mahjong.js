@@ -399,4 +399,4 @@ function summarize(session, includeFees) {
   return { valid: true, message: '', players: players, transfers: makeTransfers(entities), totalFeeCents: totalFee };
 }
 
-module.exports = { createSession: createSession, createRound: createRound, createFee: createFee, validateRound: validateRound, calculateFee: calculateFee, getFeeTotals: getFeeTotals, redistributeFee: redistributeFee, summarize: summarize, formatMoney: formatMoney };
+module.exports = { createSession: createSession, createRound: createRound, createFee: createFee, validateRound: validateRound, calculateFee: calculateFee, getFeeTotals: getFeeTotals, redistributeFee: redistributeFee, summarize: summarize, formatMoney: formatMoney, makeTransfers: makeTransfers };
