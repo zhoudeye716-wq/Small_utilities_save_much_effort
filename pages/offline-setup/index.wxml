@@ -11,5 +11,6 @@
       <view class="primary-button enter-table" bindtap="enterTable" aria-role="button">开始新局</view>
       <view wx:if="{{hasSavedTable}}" class="continue-table" bindtap="continueTable" aria-role="button">继续上一局</view>
     </view>
+    <view class="lan-entry" bindtap="openLan" aria-role="button">局域网联机围坐 ›</view>
   </view>
 </view>

@@ -66,3 +66,11 @@
 .action-buttons button { min-height: clamp(38px, 7.5vh, 56px); font-size: clamp(13px, 2.5vh, 20px); }
 .table-message { font-size: clamp(11px, 2vh, 16px); }
 .chip-buttons button, .bet-line button, .action-buttons button { display: flex; align-items: center; justify-content: center; }
+.summary-backdrop { position: fixed; inset: 0; z-index: 500; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,.78); }
+.summary-panel { box-sizing: border-box; width: 88%; max-width: 680px; max-height: 90%; padding: 16px 20px; border-radius: 14px; background: #152d20; color: #e9dfb8; }
+.summary-header { display: flex; align-items: center; justify-content: space-between; font-size: 19px; font-weight: bold; }
+.summary-header button { margin: 0; font-size: 13px; line-height: 2.4; background: #295b48; color: white; }
+.summary-content { height: 60vh; margin-top: 8px; }
+.summary-row { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 15px; }
+.summary-note { color: #a7c0ae; font-size: 13px; padding: 8px 0; }
+.summary-subtitle { margin-top: 14px; font-weight: bold; }

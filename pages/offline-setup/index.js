@@ -1,6 +1,7 @@
 var DEFAULTS = { smallBlind: '1', bigBlind: '1', totalChips: '1000', unitPrice: '0.1', players: 4 };
 var storage = require('../../utils/storage.js');
 var engine = require('../../utils/offline-table.js');
+var settlement = require('../../utils/poker-settlement.js');
 
 Page({
   data: { settings: DEFAULTS, hasSavedTable: false },
@@ -23,6 +24,7 @@ Page({
   increasePlayers: function () { this.adjustPlayers(1); },
   decreasePlayers: function () { this.adjustPlayers(-1); },
   openGuide: function () { wx.navigateTo({ url: '/pages/offline-guide/index' }); },
+  openLan: function () { wx.navigateTo({ url: '/pages/lan-poker-lobby/index' }); },
   openTable: function () {
     if (this.openingTable) return;
     this.openingTable = true;
@@ -43,11 +45,10 @@ Page({
     var small = Number(settings.smallBlind);
     var big = Number(settings.bigBlind);
     var chips = Number(settings.totalChips);
-    var price = Number(settings.unitPrice);
     if (!Number.isSafeInteger(small) || small <= 0 || !Number.isSafeInteger(big) || big < small ||
-        !Number.isSafeInteger(chips) || chips <= 0 || !Number.isSafeInteger(chips * settings.players) || !Number.isFinite(price) || price < 0 ||
+        !Number.isSafeInteger(chips) || chips <= 0 || !Number.isSafeInteger(chips * settings.players) || settlement.priceFen(settings.unitPrice) === null ||
         !Number.isInteger(settings.players) || settings.players < 2 || settings.players > 9) {
-      wx.showModal({ title: '请检查牌桌设置', content: '盲注和筹码需要填写大于 0 的整数，大盲不能小于小盲；全桌筹码不能超出安全计算范围，单价不能小于 0，人数为 2 到 9 人。', showCancel: false });
+      wx.showModal({ title: '请检查牌桌设置', content: '盲注和筹码需要填写大于 0 的整数，大盲不能小于小盲；全桌筹码不能超出安全计算范围，单价至少 0.01 元且最多两位小数，人数为 2 到 9 人。', showCancel: false });
       return;
     }
     var existing = storage.loadState('offlineTable', null);

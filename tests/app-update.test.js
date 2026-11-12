@@ -4,7 +4,7 @@ const update = require('../utils/app-update');
 
 function release(tag, extra = {}) {
   return Object.assign({ tag_name: tag, name: tag, body: '修复问题', prerelease: false,
-    assets: [{ name: 'app.apk', browser_download_url: 'https://gitee.com/bigpoint/total-release/attach_files/12/download' }] }, extra);
+    assets: [{ name: 'app.apk', browser_download_url: 'https://gitee.com/bigpoint/Small_utilities_save_much_effort/releases/download/v0.0.7/app.apk' }] }, extra);
 }
 
 test('从 Release 中选出比原生版本更新的正式 APK', () => {
@@ -18,7 +18,8 @@ test('从 Release 中选出比原生版本更新的正式 APK', () => {
 test('跳过格式不合规或无可信 APK 的 Release', () => {
   const noApk = release('v3.0.0', {assets: [{name:'source.zip', browser_download_url:'https://gitee.com/a.zip'}]});
   const badUrl = release('v2.0.0', {assets: [{name:'a.apk', browser_download_url:'https://evil.test/a.apk'}]});
-  assert.equal(update.selectRelease([noApk,badUrl,release('vbad')], '0.0.5'), null);
+  const oldRepo = release('v1.0.0', {assets: [{name:'app.apk', browser_download_url:'https://gitee.com/bigpoint/total-release/attach_files/12/download'}]});
+  assert.equal(update.selectRelease([noApk,badUrl,oldRepo,release('vbad')], '0.0.5'), null);
 });
 
 test('只在 Android 多端请求更新，一次启动只请求一次', () => {
@@ -28,6 +29,7 @@ test('只在 Android 多端请求更新，一次启动只请求一次', () => {
   const controller = update.createUpdater(wx);
   controller.check(); controller.check();
   assert.equal(requested, 1);
+  assert.equal(opts.url, 'https://gitee.com/api/v5/repos/bigpoint/Small_utilities_save_much_effort/releases?per_page=100');
   opts.success({statusCode:200,data:[release('v0.0.6')]});
   assert.equal(controller.getState().version, '0.0.6');
   const other = update.createUpdater({getDeviceInfo:()=>({platform:'android'}),request(){throw Error('unexpected');}});
@@ -38,7 +40,7 @@ test('下载进度实时更新，成功后调用官方安装接口', () => {
   let opts, progress, install;
   const wx = {miniapp:{installApp(o){install=o;}},downloadFile(o){opts=o;return {onProgressUpdate(fn){progress=fn;}};}};
   const events=[];
-  update.download(wx, 'https://gitee.com/bigpoint/total-release/attach_files/12/download', s=>events.push(s));
+  update.download(wx, 'https://gitee.com/bigpoint/Small_utilities_save_much_effort/releases/download/v0.0.7/app.apk', s=>events.push(s));
   progress({progress:42}); assert.equal(events.at(-1).progress,42);
   opts.success({statusCode:200,tempFilePath:'wxfile://tmp/update.apk'});
   assert.equal(install.filePath,'wxfile://tmp/update.apk');
@@ -49,7 +51,7 @@ test('下载进度实时更新，成功后调用官方安装接口', () => {
 test('下载失败不调用安装接口，允许重试', () => {
   let opts, installs=0; const events=[];
   const wx={miniapp:{installApp(){installs++;}},downloadFile(o){opts=o;return {onProgressUpdate(){}};}};
-  update.download(wx,'https://gitee.com/bigpoint/total-release/attach_files/12/download',s=>events.push(s));
+  update.download(wx,'https://gitee.com/bigpoint/Small_utilities_save_much_effort/releases/download/v0.0.7/app.apk',s=>events.push(s));
   opts.success({statusCode:403});
   assert.equal(installs,0); assert.equal(events.at(-1).status,'error');
 });

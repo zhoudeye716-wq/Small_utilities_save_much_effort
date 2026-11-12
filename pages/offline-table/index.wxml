@@ -3,11 +3,33 @@
   <view class="table-menu" style="top:{{menuTop}}px;right:{{menuRight}}px">
     <view class="menu-trigger" bindtap="toggleMenu" aria-role="button" aria-label="牌桌菜单">菜单 ▾</view>
     <view wx:if="{{menuOpen}}" class="menu-list">
-      <view data-action="dealer" bindtap="menuAction">设置庄家</view>
-      <view data-action="topup" bindtap="menuAction">补充筹码</view>
-      <view data-action="reset" bindtap="menuAction">重置牌桌</view>
+      <view wx:if="{{!isLan || isHost}}" data-action="dealer" bindtap="menuAction">设置庄家</view>
+      <view wx:if="{{!isLan || isHost}}" data-action="topup" bindtap="menuAction">补充筹码</view>
+      <view wx:if="{{!isLan}}" data-action="reset" bindtap="menuAction">重置牌桌</view>
+      <view wx:if="{{isLan && isHost}}" data-action="members" bindtap="menuAction">成员管理</view>
+      <view data-action="summary" bindtap="menuAction">查看盈亏</view>
       <view data-action="guide" bindtap="menuAction">使用指南</view>
       <view data-action="back" bindtap="menuAction">返回设置</view>
+    </view>
+  </view>
+  <view wx:if="{{memberDialog}}" class="summary-backdrop"><view class="summary-panel">
+    <view class="summary-header"><text>房间成员</text><button bindtap="closeMembers">关闭</button></view>
+    <scroll-view scroll-y class="summary-content"><view wx:for="{{members}}" wx:key="id" class="summary-row"><text>{{item.name}} · {{item.offline ? '离线' : '在线'}}</text><button wx:if="{{item.offline}}" size="mini" data-id="{{item.id}}" bindtap="confirmMemberLeft">确认离场</button></view></scroll-view>
+  </view></view>
+  <view wx:if="{{summary}}" class="summary-backdrop">
+    <view class="summary-panel">
+      <view class="summary-header"><text>本场盈亏</text><button bindtap="closeSummary">返回牌桌</button></view>
+      <scroll-view scroll-y class="summary-content">
+        <view wx:if="{{isLan && connection !== 'joined' && connection !== 'hosting'}}" class="summary-note">当前连接中断或正在重连，以下数据可能不是最新。</view>
+        <view wx:if="{{!summary.valid}}" class="summary-note">{{summary.message}}</view>
+        <block wx:else>
+          <view wx:if="{{summary.provisional}}" class="summary-note">本小局尚未结算，底池暂按各人投入计回，仅供参考。</view>
+          <view wx:for="{{summary.players}}" wx:key="id" class="summary-row"><text>{{item.name}}</text><text>{{item.cents > 0 ? '+' : ''}}{{item.amount}} 元</text></view>
+          <view class="summary-subtitle">建议转账</view>
+          <view wx:if="{{!summary.transfers.length}}" class="summary-note">暂无需要转账的金额</view>
+          <view wx:for="{{summary.transfers}}" wx:key="index" class="summary-row"><text>{{item.from}} → {{item.to}}</text><text>¥{{item.amount}}</text></view>
+        </block>
+      </scroll-view>
     </view>
   </view>
   <view wx:if="{{topUpDialog}}" class="topup-backdrop" bindtap="closeTopUp"><view class="topup-dialog" catchtap="absorbTopUpTap"><view class="topup-title">给 {{topUpDialog.label}} 补充筹码</view><input class="topup-input" type="number" value="{{topUpDialog.amount}}" bindinput="inputTopUp" placeholder="输入大于 0 的整数" focus /><view wx:if="{{topUpDialog.error}}" class="topup-error">{{topUpDialog.error}}</view><view class="topup-actions"><button bindtap="closeTopUp">取消</button><button class="topup-confirm" bindtap="confirmTopUp">确认补充</button></view></view></view>
@@ -15,7 +37,7 @@
     <view class="oval-table"></view>
     <view wx:for="{{seats}}" wx:key="index" class="player-seat {{item.dealer ? 'dealer' : ''}} {{item.role === 'SB' || item.role === 'D/SB' ? 'small-blind' : ''}} {{item.role === 'BB' ? 'big-blind' : ''}} {{item.folded ? 'folded' : ''}} {{item.current ? 'current' : ''}} {{item.selected ? 'selected' : ''}}" style="{{item.positionStyle}}" data-index="{{index}}" bindtap="onSeatTap">
       <view class="seat-content">
-        <text class="seat-name">P{{index + 1}} · {{item.role}}<text wx:if="{{item.folded}}"> · 弃</text><text wx:elif="{{item.stack === 0}}"> · 全下</text></text>
+        <text class="seat-name">{{item.label}} · {{item.role}}<text wx:if="{{item.folded}}"> · 弃</text><text wx:elif="{{item.stack === 0}}"> · 全下</text></text>
         <text class="seat-stack">持有 {{item.stack}}</text>
         <text class="seat-bet">本局已投 {{item.totalBet}}</text>
       </view>
@@ -23,22 +45,26 @@
 
     <scroll-view scroll-y class="control-center">
       <view class="control-content {{table.stage !== 'showdown' && table.stage !== 'waiting' ? 'playing' : ''}}">
+        <view wx:if="{{roomEnded}}" class="settlement-hint">房间已解散，保留最后牌局供查看</view>
+        <view wx:elif="{{isLan && connection !== 'joined' && connection !== 'hosting'}}" class="settlement-hint">正在等待房主连接，显示最近保存的牌局</view>
         <view class="pot-header"><text class="pot-label">底池</text><text class="pot-value">{{table.pot}}</text><text class="pot-stage">{{stageLabel}}</text></view>
         <view wx:if="{{mode}}" class="mode-hint">{{modeLabel}}<button bindtap="cancelMode">{{mode === 'winner' ? '完成' : '取消'}}</button></view>
 
         <block wx:if="{{table.stage === 'showdown'}}">
           <view class="settlement-hint">请比实体牌，为每个底池选择赢家</view>
-          <view class="pot-row" wx:for="{{pots}}" wx:key="index"><view><text class="pot-row-name">{{item.label}} {{item.amount}}</text><text class="pot-row-status">{{item.status}}</text></view><button wx:if="{{item.needsChoice}}" data-index="{{index}}" bindtap="choosePot">选择</button></view>
-          <button class="confirm-button" bindtap="settle">结算并开始下一局</button>
+          <view class="pot-row" wx:for="{{pots}}" wx:key="index"><view><text class="pot-row-name">{{item.label}} {{item.amount}}</text><text class="pot-row-status">{{item.status}}</text></view><button wx:if="{{item.needsChoice && (!isLan || isHost) && !roomEnded}}" data-index="{{index}}" bindtap="choosePot">选择</button></view>
+          <button wx:if="{{(!isLan || isHost) && !roomEnded}}" class="confirm-button" bindtap="settle">结算并开始下一局</button>
         </block>
         <block wx:elif="{{table.stage === 'waiting'}}">
-          <view class="settlement-hint">有玩家筹码为 0，请在右上角菜单选择“补充筹码”，再选择座位。补齐后自动开始下一局。</view>
+          <view class="settlement-hint">{{table.message || '有玩家筹码为 0，请在右上角菜单选择“补充筹码”，再选择座位。补齐后自动开始下一局。'}}</view>
         </block>
         <block wx:else>
-          <view class="current-line"><text>当前 P{{table.currentSeat + 1}} · {{currentRole}}</text><text>需跟 {{toCall}}</text></view>
-          <view class="chip-buttons"><button wx:for="{{increments}}" wx:key="*this" data-amount="{{item}}" bindtap="addBet">+{{item}}</button><button class="allin-button" bindtap="allIn">全下</button></view>
-          <view class="bet-line"><view class="bet-amount"><text>已选下注</text><input type="number" value="{{pendingBet}}" bindinput="setPendingBet" /></view><button bindtap="clearBet">清空</button><button class="bet-button" bindtap="confirmBet">确认下注</button></view>
-          <view class="action-buttons"><button class="fold-button" bindtap="fold">弃牌</button><button class="call-button" bindtap="nextSeat">{{toCall > 0 ? '自动跟注 ' + callAmount + (callAmount < toCall ? '（全下）' : '') : '自动跟注（过牌）'}}</button></view>
+          <view class="current-line"><text>当前 {{currentName}} · {{currentRole}}</text><text>需跟 {{toCall}}</text></view>
+          <block wx:if="{{canAct && !roomEnded}}">
+            <view class="chip-buttons"><button wx:for="{{increments}}" wx:key="*this" data-amount="{{item}}" bindtap="addBet">+{{item}}</button><button class="allin-button" bindtap="allIn">全下</button></view>
+            <view class="bet-line"><view class="bet-amount"><text>已选下注</text><input type="number" value="{{pendingBet}}" bindinput="setPendingBet" /></view><button bindtap="clearBet">清空</button><button class="bet-button" bindtap="confirmBet">确认下注</button></view>
+            <view class="action-buttons"><button class="fold-button" bindtap="fold">弃牌</button><button class="call-button" bindtap="nextSeat">{{toCall > 0 ? '自动跟注 ' + callAmount + (callAmount < toCall ? '（全下）' : '') : '自动跟注（过牌）'}}</button></view>
+          </block><view wx:elif="{{isLan && !roomEnded}}" class="settlement-hint">等待当前玩家操作</view>
         </block>
         <view class="table-message">{{table.message}}</view>
       </view>

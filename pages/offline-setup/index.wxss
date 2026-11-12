@@ -13,3 +13,4 @@
 .setup-actions view { display: flex; flex: 1; align-items: center; justify-content: center; min-width: 0; min-height: 88rpx; border-radius: 22rpx; font-size: 29rpx; font-weight: 700; white-space: nowrap; }
 .enter-table { margin: 0; background: linear-gradient(110deg, #25865a, #176d48); }
 .continue-table { color: #bee5d4; border: 2rpx solid rgba(120, 202, 170, .4); background: #254b39; }
+.lan-entry { display: flex; align-items: center; justify-content: center; min-height: 88rpx; margin-top: 16rpx; border-radius: 22rpx; background: #254b39; color: #bee5d4; font-size: 29rpx; font-weight: 700; }

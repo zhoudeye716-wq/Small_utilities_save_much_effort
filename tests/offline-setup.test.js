@@ -60,3 +60,10 @@ test('全桌初始筹码超出安全整数范围时不会创建牌桌', function
   assert.equal(navigated, null);
   assert.equal(dataStore.offlineSettings, undefined);
 });
+test('单价低于一分或不能按分精确表示时提示并不创建',function(){
+ ['0','0.015'].forEach(function(price){dataStore={};navigated=null;modal=null;makePage({smallBlind:'1',bigBlind:'2',totalChips:'1000',unitPrice:price,players:4}).enterTable();assert.equal(navigated,null);assert.ok(modal);});
+});
+test('局域网入口只打开联机大厅，不覆盖单机牌桌',function(){
+ dataStore={offlineTable:{pot:42}};navigated=null;makePage({}).openLan();
+ assert.equal(navigated,'/pages/lan-poker-lobby/index');assert.equal(dataStore.offlineTable.pot,42);
+});

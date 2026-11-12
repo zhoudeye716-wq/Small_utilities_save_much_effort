@@ -1,5 +1,14 @@
 var test = require('node:test');
 var assert = require('node:assert/strict');
+test('联机视角自己总在正下方，所有座位文字不旋转', function () {
+  var layout = require('../utils/table-layout.js');
+  for (var n = 2; n <= 9; n++) for (var viewer = 0; viewer < n; viewer++) {
+    var points = layout.seatPointsForViewer(n, 800, 320, viewer);
+    assert.equal(points[viewer].left, 50);
+    assert.equal(points[viewer].top, 87);
+    assert.ok(points.every(function (p) { return p.rotation === 0; }));
+  }
+});
 var fs = require('node:fs');
 var path = require('node:path');
 var file = path.join(__dirname, '../utils/table-layout.js');

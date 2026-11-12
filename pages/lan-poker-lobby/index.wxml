@@ -1,0 +1,25 @@
+<view class="lobby">
+  <view class="intro">局域网围坐</view><view class="hint">所有设备连接同一 Wi-Fi 或热点，使用实体扑克牌。</view>
+  <view class="card" wx:if="{{!state}}">
+    <view class="label">我的昵称</view><input class="field" maxlength="24" value="{{name}}" data-key="name" bindinput="input" placeholder="输入昵称" />
+    <view class="label">房间名称</view><input class="field" maxlength="32" value="{{roomName}}" data-key="roomName" bindinput="input" placeholder="创建房间时填写" />
+    <view class="setting"><text>小盲 / 大盲</text><input type="number" value="{{settings.smallBlind}}" data-key="settings.smallBlind" bindinput="input" /><input type="number" value="{{settings.bigBlind}}" data-key="settings.bigBlind" bindinput="input" /></view>
+    <view class="setting"><text>每人初始筹码</text><input type="number" value="{{settings.totalChips}}" data-key="settings.totalChips" bindinput="input" /></view>
+    <view class="setting"><text>筹码单价（元）</text><input type="digit" value="{{settings.unitPrice}}" data-key="settings.unitPrice" bindinput="input" /></view>
+    <view class="check" bindtap="togglePassword">{{passwordEnabled ? '☑' : '☐'}} 添加房间密码</view>
+    <input wx:if="{{passwordEnabled}}" class="field" value="{{password}}" data-key="password" bindinput="input" password placeholder="输入房间密码" />
+    <view class="actions"><button bindtap="createRoom" class="primary">创建房间</button><button bindtap="searchRooms">搜索房间</button></view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <view class="hint">搜索不到时，可输入房主的局域网 IP 查询。</view><view class="actions"><input class="field" value="{{manualAddress}}" data-key="manualAddress" bindinput="input" placeholder="例如 192.168.1.2" /><button bindtap="probeRoom">按地址查询</button></view>
+    <view wx:for="{{rooms}}" wx:key="id" class="room" data-index="{{index}}" bindtap="selectRoom"><text>{{item.name}}</text><text>{{item.passwordRequired ? '🔒 ' : ''}}加入 ›</text></view>
+  </view>
+  <view class="card" wx:if="{{state}}">
+    <view class="room-name">{{state.name}}</view><view class="hint">{{role === 'host' ? '你是房主' : '选择自己的座位'}} · 最多 9 人</view>
+    <view class="seat-grid"><view wx:for="{{seats}}" wx:key="number" data-seat="{{item.number}}" bindtap="chooseSeat" class="seat {{item.own ? 'own' : ''}} {{item.taken ? 'taken' : ''}}">{{item.label}}</view></view>
+    <view class="hint" wx:if="{{state.table}}">正在进行的小局结束后，新玩家才能上场。</view>
+    <button wx:if="{{role === 'host' && !state.table}}" class="primary" bindtap="startGame">开始对局</button>
+    <button wx:if="{{inHand}}" class="primary" bindtap="openTable">查看牌桌</button>
+    <button bindtap="leaveRoom">{{role === 'host' ? '解散房间' : '退出房间'}}</button>
+  </view>
+  <view wx:if="{{joinTarget}}" class="overlay"><view class="dialog"><view class="room-name">加入 {{joinTarget.name}}</view><input class="field" value="{{joinPassword}}" data-key="joinPassword" bindinput="input" password placeholder="输入房间密码" /><view class="actions"><button bindtap="cancelJoin">取消</button><button class="primary" bindtap="joinWithPassword">加入</button></view></view></view>
+</view>

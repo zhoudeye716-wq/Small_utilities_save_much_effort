@@ -7,6 +7,7 @@
     "pages/offline-setup/index",
     "pages/offline-guide/index",
     "pages/offline-table/index",
+    "pages/lan-poker-lobby/index",
     "pages/mahjong-history/index",
     "pages/mahjong-guide/index",
     "pages/mahjong-session/index",

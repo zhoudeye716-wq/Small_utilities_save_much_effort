@@ -1,6 +1,39 @@
 var test = require('node:test');
 var assert = require('node:assert/strict');
 var engine = require('../utils/offline-table.js');
+test('一小局结束后手牌序号递增，重置牌桌重新开始',function(){
+ var table=engine.createTable({players:2,totalChips:100});assert.equal(table.handNumber,1);
+ table=engine.applyAction(table,{type:'fold'}).state;assert.equal(table.handNumber,2);
+ assert.equal(engine.startNewHand(table,{resetStacks:true}).handNumber,1);
+});
+test('等待补筹后开局不会重复增加小局序号',function(){
+ var t=engine.createTable({players:3,totalChips:10,smallBlind:1,bigBlind:2});
+ t=engine.applyAction(t,{type:'add',amount:10}).state;
+ t=engine.applyAction(t,{type:'next'}).state;t=engine.applyAction(t,{type:'next'}).state;t=engine.applyAction(t,{type:'next'}).state;
+ t=engine.settlePots(t,[[0]]).state;
+ assert.equal(t.stage,'waiting');var number=t.handNumber;
+ t=engine.addChips(t,1,10).state;t=engine.addChips(t,2,10).state;
+ assert.equal(t.handNumber,number);
+});
+
+test('玩家离场可以在非当前座位弃牌，不影响当前行动者', function () {
+  var table = engine.createTable({players:4,smallBlind:1,bigBlind:2,totalChips:100});
+  var before = table.currentSeat;
+  var result = engine.leaveSeat(table, 1);
+  assert.equal(result.error, undefined);
+  assert.equal(result.state.seats[1].folded, true);
+  assert.equal(result.state.currentSeat, before);
+  assert.equal(result.state.pot, table.pot);
+  assert.equal(table.seats[1].folded, false);
+});
+
+test('当前行动者离场后推进至下一位', function () {
+  var table = engine.createTable({players:4,smallBlind:1,bigBlind:2,totalChips:100});
+  var result = engine.leaveSeat(table, table.currentSeat);
+  assert.equal(result.error, undefined);
+  assert.equal(result.state.seats[table.currentSeat].folded, true);
+  assert.notEqual(result.state.currentSeat, table.currentSeat);
+});
 
 test('庄家在盲注发出后可重新选择，筹码总额不变', function () {
   var table = engine.createTable({ players: 4, smallBlind: 1, bigBlind: 2, totalChips: 100 });
@@ -265,4 +298,11 @@ test('主池赢家有资格参与边池时，不能把边池判给输家', funct
   assert.ok(result.error);
   assert.equal(result.state.pot, 250);
   assert.deepEqual(result.state.seats.map(function (seat) { return seat.stack; }), [0, 0, 0]);
+});
+test('离场不能让边池没有合格赢家而使牌局无法结算',function(){
+  var state=engine.createTable({players:4,totalChips:100,smallBlind:1,bigBlind:2,unitPrice:0.1});
+  [20,20,10,10].forEach(function(v,i){state.seats[i].totalBet=v;state.seats[i].streetBet=0;state.seats[i].stack=100-v;});
+  state.pot=60;state.seats[0].folded=true;state.currentSeat=2;state.stage='preflop';
+  var result=engine.leaveSeat(state,1);
+  assert.ok(result.error);assert.equal(result.state.seats[1].folded,false);assert.equal(state.pot,60);
 });
