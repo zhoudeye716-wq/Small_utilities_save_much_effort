@@ -12,7 +12,7 @@
     "sdkVersion": "1.7.0",
     "toolkitVersion": "0.11.0",
     "useExtendedSdk": {
-      "media": false,
+      "media": true,
       "bluetooth": false,
       "network": true,
       "scanner": false,

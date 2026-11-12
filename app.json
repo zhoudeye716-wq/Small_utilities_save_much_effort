@@ -16,6 +16,8 @@
     "pages/signboard/index",
     "pages/timer/index",
     "pages/guess-size/index",
+    "pages/perler-list/index",
+    "pages/perler-editor/index",
     "pages/lan-test/index"
   ],
   "window": {
@@ -26,6 +28,7 @@
     "backgroundTextStyle": "light"
   },
   "style": "v2",
+  "resizable": true,
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

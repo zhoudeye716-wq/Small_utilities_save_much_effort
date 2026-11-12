@@ -1,0 +1,42 @@
+<view class="page">
+  <view wx:if="{{!boardMode}}" class="top"><view><view class="label">BEAD STUDIO · 本机工作台</view><view class="title">{{name}}</view></view><button class="ghost" bindtap="renameProject">重命名</button></view>
+  <view wx:if="{{!boardMode}}" class="privacy">拼豆功能无服务器，图片和图纸保存在本机，可在 Git 仓库核实。</view>
+  <view wx:if="{{!loaded}}" class="placeholder"><view>挑一张喜欢的图片</view><button class="primary" bindtap="chooseImage">从相册选择</button></view>
+  <block wx:if="{{loaded}}">
+    <view wx:if="{{!boardMode}}" class="toolbar"><button class="chip {{panel==='settings'?'selected':''}}" data-panel="settings" bindtap="togglePanel">生成设置</button><button class="chip {{editing?'selected':''}}" bindtap="toggleEditing">{{editing?'退出改单格':'改单格'}}</button><button class="chip" bindtap="toggleBoard">底板对照</button><button class="chip" bindtap="openExport">导出图纸</button></view>
+    <view wx:if="{{!boardMode && panel==='settings'}}" class="settings card">
+      <view class="row"><text>横向格数</text><input type="number" value="{{columns}}" bindinput="changeColumns"/><text>× {{height}}</text></view>
+      <view class="row"><text>色号体系</text><picker range="{{systems}}" value="{{systemIndex}}" bindchange="changeSystem"><view class="picker">{{systems[systemIndex]}} ▾</view></picker></view>
+      <view class="row"><text>可用颜色</text><button class="chip" bindtap="openExcludes">排除不需要的颜色</button></view>
+      <view class="row"><text>图片处理</text><picker range="{{modeNames}}" value="{{modeIndex}}" bindchange="changeMode"><view class="picker">{{modeNames[modeIndex]}} ▾</view></picker></view>
+      <view class="row"><text>相近色合并</text><text>{{mergeThreshold}}</text></view><slider min="0" max="30" step="1" value="{{mergeThreshold}}" activeColor="#698a73" bindchange="changeMerge" />
+      <view class="row"><text>去除边缘背景</text><switch checked="{{removeBackground}}" bindchange="changeBackground" color="#5b806b" /></view>
+      <view wx:if="{{removeBackground}}" class="hint">根据边缘颜色估计背景，复杂图片可能误删；关闭此选项可恢复。</view>
+      <view class="hint">设置变更后自动更新图纸。图纸比例与原图保持一致。</view>
+    </view>
+    <view wx:if="{{editing && !boardMode}}" class="editbar"><text>点击格子修改颜色</text><button bindtap="openColors">选择色号：{{selectedColor.key || '请选择'}}</button><button bindtap="chooseEraser">擦除</button><button bindtap="beginReplace">全图换色</button><button bindtap="undoEdit">撤销</button></view>
+    <view wx:if="{{boardMode}}" class="boardbar"><view class="board-controls"><button class="chip {{scaleLocked?'selected':''}}" bindtap="toggleScaleLock">{{scaleLocked?'比例已锁':'锁定比例'}}</button><button class="chip {{positionLocked?'selected':''}}" bindtap="togglePositionLock">{{positionLocked?'位置已锁':'锁定位置'}}</button><button class="chip" bindtap="openCalibration">校准</button><button class="chip" bindtap="toggleBoard">退出</button></view><view class="board-privacy">拼豆功能无服务器，数据保存在本机，可在 Git 仓库核实</view></view>
+    <view class="stage {{boardMode?'board-stage':''}}" id="stage"><canvas id="bead-canvas" type="2d" class="canvas" bindtouchstart="canvasStart" catchtouchmove="canvasMove" bindtouchend="canvasEnd" bindtouchcancel="canvasCancel" /></view>
+    <view wx:if="{{!boardMode}}" class="canvas-note">{{width}} × {{height}} 格 · {{total}} 颗 · 双指缩放，单指拖动</view>
+    <view wx:if="{{busy}}" class="loading">正在生成，请稍候…</view>
+    <view wx:if="{{!boardMode}}" class="summary card"><view class="summary-title">用色统计 <text>{{colorCount}} 色 · {{total}} 颗</text></view><scroll-view scroll-x class="colors"><view class="color-row"><view wx:for="{{counts}}" wx:key="key" class="color-pill"><view class="swatch" style="background:{{item.color}}"></view><text>{{item.key}} · {{item.count}}</text></view></view></scroll-view></view>
+  </block>
+  <canvas id="sample-canvas" type="2d" class="hidden-canvas" />
+  <canvas id="export-canvas" type="2d" class="hidden-canvas" />
+  <view wx:if="{{panel==='colors' || panel==='replaceSource' || panel==='replaceTarget'}}" class="mask"><view class="sheet"><view class="sheet-title">{{panel==='replaceSource'?'选择要替换的颜色':panel==='replaceTarget'?'选择替换后的颜色':'选择色号'}} <text bindtap="closePanel">×</text></view><scroll-view scroll-y class="palette"><view class="palette-grid"><view wx:for="{{palette}}" wx:key="color" class="palette-cell" data-index="{{index}}" bindtap="selectColor"><view style="background:{{item.color}}"></view><text>{{item.key}}</text></view></view></scroll-view></view></view>
+  <view wx:if="{{panel==='exclude'}}" class="mask"><view class="sheet"><view class="sheet-title">排除颜色 <text bindtap="closePanel">×</text></view><view class="hint">点击色号切换；带 × 的颜色不会用于自动生成。</view><scroll-view scroll-y class="palette"><view class="palette-grid"><view wx:for="{{filterPalette}}" wx:key="color" class="palette-cell" data-index="{{index}}" bindtap="toggleExcluded"><view style="background:{{item.color}}">{{item.excluded?'×':''}}</view><text>{{item.key}}</text></view></view></scroll-view><button class="primary" bindtap="confirmExcludes">确定</button></view></view>
+  <view wx:if="{{panel==='calibration'}}" class="mask"><view class="sheet"><view class="sheet-title">编辑映射比例 <text bindtap="cancelCalibration">×</text></view><view class="hint">先双指缩放图纸，再用下方滚轮左右微调。将透明底板放在屏幕上，对齐相邻柱子的中心。</view><view class="calibration-actions"><button bindtap="beginCalibration">开始调整</button><button bindtap="openProfiles">选择已存比例</button></view></view></view>
+  <view wx:if="{{calibrating}}" class="calibration-bar"><view class="wheel" bindtouchstart="wheelStart" bindtouchmove="wheelMove" bindtouchend="wheelEnd">‹　||||||||||||||||　›<text>左右拨动微调</text></view><button class="primary" bindtap="confirmCalibration">确定</button><button bindtap="cancelCalibration">取消</button></view>
+  <view wx:if="{{panel==='profiles'}}" class="mask"><view class="sheet"><view class="sheet-title">{{profileAction==='overwrite'?'选择要覆盖的比例':'已保存的比例'}} <text bindtap="closePanel">×</text></view><view wx:if="{{!profiles.length}}" class="hint">暂无保存的比例，先调整并保存。</view><scroll-view scroll-y class="palette"><view wx:for="{{profiles}}" wx:key="id" class="profile"><text data-id="{{item.id}}" bindtap="applyProfile">{{item.name}}</text><button wx:if="{{profileAction!=='overwrite'}}" data-id="{{item.id}}" bindtap="deleteProfile">删除</button></view></scroll-view></view></view>
+  <view wx:if="{{panel==='export'}}" class="mask"><view class="sheet"><view class="sheet-title">导出图纸 <text bindtap="closePanel">×</text></view><scroll-view scroll-y class="export-options">
+    <view class="option"><text>隐藏格内色号</text><switch checked="{{exportOptions.hideNumbers}}" data-key="hideNumbers" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view class="option"><text>色号统计</text><switch checked="{{exportOptions.includeStats}}" data-key="includeStats" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view class="option"><text>水平镜像</text><switch checked="{{exportOptions.mirror}}" data-key="mirror" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view class="option"><text>显示坐标数字</text><switch checked="{{exportOptions.showCoordinates}}" data-key="showCoordinates" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view class="option"><text>显示网格线</text><switch checked="{{exportOptions.showGrid}}" data-key="showGrid" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view wx:if="{{exportOptions.showGrid && !exportOptions.split}}" class="option"><text>每多少格加深线条</text><input type="number" value="{{exportOptions.gridInterval}}" data-key="gridInterval" bindinput="exportInput"/></view>
+    <view class="option"><text>分块导出</text><switch checked="{{exportOptions.split}}" data-key="split" bindchange="exportSwitch" color="#5b806b"/></view>
+    <view wx:if="{{exportOptions.split}}" class="split-example"><view class="split-grid"><view>1</view><view>2</view><view>3</view><view>4</view><view>5</view><view>6</view></view><view class="hint">将整张图纸分成多张图片。数字表示导出顺序；边缘不足一块时按实际尺寸保留，并带整体坐标。</view></view>
+    <view wx:if="{{exportOptions.split}}" class="option"><text>每块边长（格）</text><input type="number" value="{{exportOptions.tileSize}}" data-key="tileSize" bindinput="exportInput"/></view>
+  </scroll-view><button class="primary" bindtap="exportImage">{{exporting?'正在导出…':'保存到相册'}}</button></view></view>
+</view>

@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="hero"><view class="eyebrow">BEAD STUDIO · 本机工作台</view><view class="title">把喜欢的图片，拼出来</view><view class="intro">创建图纸，保存灵感，随时回来继续制作。</view></view>
+  <button class="create" bindtap="create"><text class="plus">＋</text><text>创建新拼豆图</text><text class="arrow">→</text></button>
+  <view class="heading"><text>我的拼豆项目</text><text class="count">{{items.length}} 份</text></view>
+  <view wx:if="{{!items.length}}" class="empty">还没有项目，选择一张喜欢的图片开始吧。</view>
+  <view wx:for="{{items}}" wx:key="id" class="project" data-id="{{item.id}}" bindtap="open">
+    <image class="thumb" src="{{item.imagePath}}" mode="aspectFill" />
+    <view class="details"><view class="name">{{item.name}}</view><view class="meta">{{item.width}} × {{item.height}} 格 · {{item.updatedText}}</view></view>
+    <button class="remove" data-id="{{item.id}}" catchtap="remove">删除</button><text class="next">›</text>
+  </view>
+  <view class="privacy">拼豆功能无服务器，图片和图纸保存在本机，可在 Git 仓库核实。</view>
+</view>

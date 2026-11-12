@@ -28,6 +28,7 @@
 .tool-icon.signboard { color: #e6eefe; background: linear-gradient(145deg, #3e5c97, #293b70); }
 .tool-icon.timer { color: #ebfbf6; background: linear-gradient(145deg, #40978e, #286778); }
 .tool-icon.guess-size { background: linear-gradient(145deg, #8b4940, #552c36); }
+.tool-icon.perler { background: linear-gradient(145deg, #a66d68, #735050); }
 .tool-icon.lan-test { background: linear-gradient(145deg, #3d758d, #294956); }
 .tool-name { font-size: 31rpx; font-weight: 700; }
 .tool-desc { min-height: 78rpx; margin-top: 14rpx; color: #a0aec3; font-size: 22rpx; line-height: 1.6; }

@@ -1,4 +1,4 @@
-<view class="home-page">
+<view class="home-page" bindtap="resetVersionTaps">
   <view class="hero">
     <view class="hero-title">小工具省更多</view>
     <view class="hero-subtitle">小巧 · 顺手 · 不费脑</view>
@@ -40,7 +40,13 @@
       <view class="tool-desc"><view>同机轮流猜数</view><view>范围越小 · 心跳越快</view></view>
       <view class="tags"><text>桌游</text><text>横屏</text></view>
     </view>
-    <view class="tool-card active" bindtap="openLanTest">
+    <view class="tool-card active" bindtap="openPerler">
+      <view class="tool-icon perler">🧩</view>
+      <view class="tool-name">拼豆工作台</view>
+      <view class="tool-desc"><view>图片变拼豆图纸</view><view>本机编辑 · 底板对照</view></view>
+      <view class="tags"><text>拼豆</text><text>本机</text></view>
+    </view>
+    <view wx:if="{{showLanTest}}" class="tool-card active" bindtap="openLanTest">
       <view class="tool-icon lan-test">📡</view>
       <view class="tool-name">局域网联机测试</view>
       <view class="tool-desc"><view>多设备建房 · 消息收发</view><view>测试延迟与传输质量</view></view>
@@ -52,7 +58,7 @@
       <view class="tool-desc">敬请期待...</view>
     </view>
   </view>
-  <view class="home-footer">所有工具 · 随心搭配<text wx:if="{{appVersion}}"> · v{{appVersion}}</text></view>
+  <view class="home-footer">所有工具 · 随心搭配<text wx:if="{{appVersion}}" catchtap="onVersionTap"> · v{{appVersion}}</text></view>
 </view>
 <view wx:if="{{update}}" class="update-mask" catchtouchmove="stopUpdateTap">
   <view class="update-dialog" role="dialog" aria-label="发现新版本">
