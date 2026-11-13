@@ -1,10 +1,60 @@
+<div align="center">
+
+<img src="./miniapp/android/icons/xxxhdpi.png" alt="小工具省更多图标" width="112" />
+
 # 小工具省更多
 
-一个基于微信小程序原生语法的本地工具集合，同时面向微信小程序和 Android 多端应用开发。目前包含「扑克决策助手」「线下围坐」「麻将清算」「临时桌牌」「万能倒计时」「猜大小」和「拼豆工作台」，另有独立的局域网联机测试入口。线下围坐适合朋友围桌使用：准备一副实体扑克牌，把手机或平板横放在桌面中央，由设备记录筹码和底池。
+### 小巧 · 顺手 · 不费脑
+
+一些随手就能用的工具，装进同一个小程序和 Android 应用。
+
+[![GitHub](https://img.shields.io/badge/GitHub-Source-24292F?style=for-the-badge&logo=github)](https://github.com/zhoudeye716-wq/Small_utilities_save_much_effort)
+[![Gitee](https://img.shields.io/badge/Gitee-Mirror-C71D23?style=for-the-badge)](https://gitee.com/bigpoint/Small_utilities_save_much_effort)
+[![Android Releases](https://img.shields.io/badge/Android-Releases-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://gitee.com/bigpoint/Small_utilities_save_much_effort/releases)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-7353BA?style=for-the-badge)](./LICENSE)
+
+</div>
+
+---
+
+## 工具一览
+
+| 工具 | 可以做什么 |
+| --- | --- |
+| 🃏 扑克决策助手 | 输入手牌和公共牌，查看当前牌型与可能组成的牌型。 |
+| ♣️ 线下围坐 | 用一副实体牌和一台设备记录筹码，也可通过局域网围坐。 |
+| 🀄 麻将清算 | 记录每轮点数、分摊台费，查看个人盈亏和转账建议。 |
+| 🪧 临时桌牌 | 用手机或平板展示文字，支持滚动、缩放和颜色设置。 |
+| ⏱️ 万能倒计时 | 桌游、对战和多项计时，多项计时以泡泡展示。 |
+| 🎯 猜大小 | 在同一设备上轮流猜数字，逐步缩小范围。 |
+| 🧩 拼豆工作台 | 将图片生成拼豆图纸，编辑色号、对照底板并导出。 |
+
+## 界面预览
+
+### 首页与竖屏工具
+
+<table>
+  <tr>
+    <td align="center"><strong>工具首页</strong><br /><a href="./docs/screenshots/01-home.jpg"><img src="./docs/screenshots/01-home.jpg" alt="小工具省更多首页" width="240" /></a></td>
+    <td align="center"><strong>扑克决策助手</strong><br /><a href="./docs/screenshots/02-poker-analysis.jpg"><img src="./docs/screenshots/02-poker-analysis.jpg" alt="扑克决策助手牌型分析" width="240" /></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>麻将清算</strong><br /><a href="./docs/screenshots/04-mahjong-settlement.jpg"><img src="./docs/screenshots/04-mahjong-settlement.jpg" alt="麻将清算与转账建议" width="240" /></a></td>
+    <td align="center"><strong>万能倒计时</strong><br /><a href="./docs/screenshots/06-timer-bubbles.jpg"><img src="./docs/screenshots/06-timer-bubbles.jpg" alt="多项倒计时泡泡" width="240" /></a></td>
+  </tr>
+</table>
+
+<p align="center"><strong>拼豆工作台</strong><br /><a href="./docs/screenshots/08-perler-editor.jpg"><img src="./docs/screenshots/08-perler-editor.jpg" alt="拼豆图纸编辑" width="240" /></a></p>
+
+### 横屏工具
+
+<p align="center"><strong>线下围坐</strong><br /><a href="./docs/screenshots/03-offline-table.jpg"><img src="./docs/screenshots/03-offline-table.jpg" alt="线下围坐牌桌" width="720" /></a></p>
+
+<p align="center"><strong>临时桌牌</strong><br /><a href="./docs/screenshots/05-signboard.jpg"><img src="./docs/screenshots/05-signboard.jpg" alt="临时桌牌与设置" width="720" /></a></p>
+
+<p align="center"><strong>猜大小</strong><br /><a href="./docs/screenshots/07-guess-size.jpg"><img src="./docs/screenshots/07-guess-size.jpg" alt="猜大小游戏界面" width="720" /></a></p>
 
 > 本工程根据已发布版本的页面截图和使用说明重新搭建，原始工程和原版决策算法无法完整恢复。
-
-项目仓库：[GitHub 原仓库](https://github.com/zhoudeye716-wq/Small_utilities_save_much_effort) · [Gitee 镜像仓库](https://gitee.com/bigpoint/Small_utilities_save_much_effort)
 
 ## 功能
 

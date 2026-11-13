@@ -12,3 +12,11 @@ release/
 
 # Local WeChat developer settings
 project.private.config.json
+
+# Local assistant instructions and task notes
+/.superpowers/
+/docs/superpowers/
+/AGENTS.md
+/RESTORE_DESIGN.md
+/.codex/
+/.claude/
