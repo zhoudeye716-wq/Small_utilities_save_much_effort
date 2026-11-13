@@ -1,8 +1,8 @@
 {
   "miniVersion": "v2",
   "name": "小工具省更多",
-  "version": "1.1.0",
-  "versionCode": 110,
+  "version": "1.1.4",
+  "versionCode": 114,
   "i18nFilePath": "i18n",
   "mini-ohos": {
     "sdkVersion": "0.5.1"
@@ -38,10 +38,21 @@
     "gdt": {
       "splashAd_fetchDelay": 0
     },
-    "appMenuEnable": false
+    "appMenuEnable": false,
+    "privateDescriptions": {
+      "ACCESS_COARSE_LOCATION": "用于获取局域网本机地址",
+      "ACCESS_FINE_LOCATION": "用于获取局域网本机地址",
+      "READ_PHONE_STATE": "用于设备方向陀螺仪状态",
+      "READ_EXTERNAL_STORAGE": "用于选择相册图片",
+      "WRITE_EXTERNAL_STORAGE": "用于选择相册图片",
+      "READ_MEDIA_IMAGES": "用于选择相册图片",
+      "READ_MEDIA_VIDEO": "用于选择相册图片",
+      "READ_MEDIA_AUDIO": "用于选择相册图片",
+      "READ_MEDIA_VISUAL_USER_SELECTED": "用于选择相册图片"
+    }
   },
   "mini-ios": {
-    "sdkVersion": "1.7.0",
+    "sdkVersion": "1.6.28",
     "toolkitVersion": "0.0.9",
     "useExtendedSdk": {
       "WeAppOpenFuns": true,

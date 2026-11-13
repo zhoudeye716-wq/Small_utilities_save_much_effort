@@ -6,16 +6,27 @@ var exporter = require('../../utils/perler/export');
 var PROFILE_KEY = 'perler-calibrations-v1';
 
 function id() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
-function distance(a, b) { var x=a.clientX-b.clientX, y=a.clientY-b.clientY; return Math.sqrt(x*x+y*y); }
-function midpoint(a,b,rect) { return {x:(a.clientX+b.clientX)/2-rect.left,y:(a.clientY+b.clientY)/2-rect.top}; }
+function touchPoint(point) {
+  if(!point)return null;
+  if(Number.isFinite(point.clientX)&&Number.isFinite(point.clientY))return {x:point.clientX,y:point.clientY,local:false};
+  if(Number.isFinite(point.x)&&Number.isFinite(point.y))return {x:point.x,y:point.y,local:true};
+  return null;
+}
+function pointInSpace(point,local,rect) {
+  if(point.local===!!local)return point;
+  var direction=local?-1:1;
+  return {x:point.x+direction*rect.left,y:point.y+direction*rect.top,local:!!local};
+}
+function distance(a,b) { var x=a.x-b.x, y=a.y-b.y;return Math.sqrt(x*x+y*y); }
+function midpoint(a,b,rect) {var first=pointInSpace(a,true,rect),second=pointInSpace(b,true,rect);return {x:(first.x+second.x)/2,y:(first.y+second.y)/2};}
 function error(message) { wx.showModal({title:'操作未完成',content:message,showCancel:false}); }
 
 Page({
   data: {
     name:'新拼豆图', loaded:false, busy:false, width:0, height:0, columns:50,
     systems:palettes.systems, systemIndex:0, modeNames:['卡通 · 主色','照片 · 平均色'], modeIndex:0, mergeThreshold:0,removeBackground:false,
-    palette:[], filterPalette:[], selectedColor:{}, counts:[], colorCount:0,total:0, panel:'',
-    editing:false, boardMode:false, scaleLocked:false, positionLocked:false,
+    palette:[], filterPalette:[], selectedColor:{}, counts:[], colorCount:0,total:0, panel:'', colorPanelOpen:false, pickMode:'', replaceSourceKey:'',
+    editing:false, undoCount:0, boardMode:false, scaleLocked:false, positionLocked:false,
     calibrating:false, profiles:[], exporting:false,
     exportOptions:{hideNumbers:false,includeStats:true,mirror:false,showCoordinates:true,showGrid:true,gridInterval:10,split:false,tileSize:50}
   },
@@ -36,8 +47,8 @@ Page({
   onReady:function() { var page=this; if(this.project) this.initStage(function(){page.fit();page.draw();if(!page.project.cells.length||page.project.pendingSettings)page.regenerate();}); else this.chooseImage(); },
   onShow:function(){if(this.boardModeActive)wx.setKeepScreenOn({keepScreenOn:true});},
   onHide:function(){if(this.boardModeActive)wx.setKeepScreenOn({keepScreenOn:false});},
-  onUnload:function() { this.generation++; if(this.updateTimer) clearTimeout(this.updateTimer); if(this.boardModeActive) wx.setKeepScreenOn({keepScreenOn:false}); },
-  onResize:function() { var page=this; if(!this.project) return; this.initStage(function(){ page.viewport=viewport.resize(page.viewport);page.draw(); }); },
+  onUnload:function() { this.generation++; this.drawDisposed=true; if(this.updateTimer) clearTimeout(this.updateTimer); if(this.boardModeActive) wx.setKeepScreenOn({keepScreenOn:false}); },
+  onResize:function() { var page=this; if(!this.project||this.data.colorPanelOpen) return; this.initStage(function(){ page.viewport=viewport.resize(page.viewport);page.draw(); }); },
   chooseImage:function() {
     var page=this;
     function chosen(path) {
@@ -60,6 +71,7 @@ Page({
   initStage:function(done) {
     var page=this;
     wx.createSelectorQuery().in(this).select('#stage').boundingClientRect().select('#bead-canvas').fields({node:true,size:true}).select('#sample-canvas').fields({node:true,size:true}).select('#export-canvas').fields({node:true,size:true}).exec(function(r){
+      if(page.drawDisposed||page.data.colorPanelOpen)return;
       if(!r || !r[0] || !r[1] || !r[1].node || !r[2] || !r[2].node || !r[3] || !r[3].node) {error('画布初始化失败，请返回后重新打开。');return;}
       page.rect=r[0];page.canvas=r[1].node;page.sampleCanvas=r[2].node;page.exportCanvas=r[3].node;
       var info=wx.getWindowInfo?wx.getWindowInfo():wx.getSystemInfoSync();page.dpr=info.pixelRatio||1;
@@ -103,7 +115,7 @@ Page({
           if(seq!==page.generation)return;
           try {
             if(!job.step(200).done) {setTimeout(step,0);return;}
-            p.cells=job.result();p.width=dim.width;p.height=dim.height;p.system=target.system;p.mode=target.mode;p.mergeThreshold=target.mergeThreshold||0;p.excludeColors=target.excludeColors||[];p.removeBackground=!!target.removeBackground;p.edited=false;page.pendingSettings=null;delete p.pendingSettings;
+            p.cells=job.result();p.width=dim.width;p.height=dim.height;p.system=target.system;p.mode=target.mode;p.mergeThreshold=target.mergeThreshold||0;p.excludeColors=target.excludeColors||[];p.removeBackground=!!target.removeBackground;p.edited=false;page.pendingSettings=null;page.clearUndo();delete p.pendingSettings;
             page.setData({busy:false,columns:p.width});page.refreshCounts();if(!page.viewport.scaleLocked)page.fit();page.draw();page.persist();
           } catch(e){page.setData({busy:false});error('生成图纸失败：'+e.message);}
         }
@@ -139,60 +151,146 @@ Page({
   changeMerge:function(e) {this.requestChange({mergeThreshold:Number(e.detail.value)});},
   changeBackground:function(e) {this.requestChange({removeBackground:e.detail.value});},
   renameProject:function() {var page=this;if(!this.project)return;wx.showModal({title:'项目名称',editable:true,placeholderText:this.project.name,success:function(r){if(r.confirm&&r.content&&r.content.trim()){page.project.name=r.content.trim().slice(0,40);page.setData({name:page.project.name});page.persist();}}});},
-  togglePanel:function(e){var p=e.currentTarget.dataset.panel;this.setData({panel:this.data.panel===p?'':p});},
-  closePanel:function(){this.setData({panel:''});},
-  toggleEditing:function(){this.setData({editing:!this.data.editing});},
-  openColors:function(){this.setData({panel:'colors'});},
-  selectColor:function(e){var c=this.data.palette[e.currentTarget.dataset.index];if(this.data.panel==='replaceSource'){this.replaceSource=c.color;this.setData({panel:'replaceTarget'});return;}if(this.data.panel==='replaceTarget'){var source=this.replaceSource;this.undoCells=this.project.cells.slice();this.project.cells=this.project.cells.map(function(cell){return cell&&cell.color===source?{key:c.key,color:c.color}:cell;});this.project.edited=true;this.refreshCounts();this.draw();this.persist();this.setData({panel:''});return;}this.setData({selectedColor:c,panel:''});},
-  chooseEraser:function(){this.setData({selectedColor:{key:'擦除',erase:true}});},
-  beginReplace:function(){this.setData({panel:'replaceSource'});},
-  undoEdit:function(){if(!this.undoCells){wx.showToast({title:'没有可撤销的修改',icon:'none'});return;}this.project.cells=this.undoCells;this.undoCells=null;this.project.edited=true;this.refreshCounts();this.draw();this.persist();},
+  togglePanel:function(e){var p=e.currentTarget.dataset.panel;this.setData({panel:this.data.panel===p?'':p,pickMode:''});},
+  closePanel:function(){if(this.data.colorPanelOpen){this.closeColorPanel();return;}this.setData({panel:''});},
+  toggleEditing:function(){var editing=!this.data.editing;this.setData({editing:editing,panel:'',pickMode:''});},
+  openColorPanel:function(panel){this.drawSequence=(this.drawSequence||0)+1;this.drawPending=false;this.canvas=null;this.ctx=null;this.setData({panel:panel,colorPanelOpen:true});},
+  closeColorPanel:function(extra){
+    var page=this,values=Object.assign({panel:'',colorPanelOpen:false},extra||{});
+    this.setData(values,function(){if(!page.drawDisposed&&!page.data.colorPanelOpen)page.initStage(function(){page.draw();});});
+  },
+  openColors:function(){if(this.data.busy){wx.showToast({title:'请等待图纸生成',icon:'none'});return;}this.setData({pickMode:'paint',panel:''});},
+  openPalette:function(){if(this.data.pickMode==='paint')this.openColorPanel('colors');else if(this.data.pickMode==='replaceTarget')this.openColorPanel('replaceTarget');},
+  cancelPicking:function(){this.replaceSource=null;this.setData({pickMode:'',replaceSourceKey:''});},
+  selectColor:function(e){
+    var index=Number(e.currentTarget.dataset.index),panel=this.data.panel;
+    if(this.data.busy){wx.showToast({title:'请等待图纸生成',icon:'none'});return;}
+    var c=this.data.palette[index];if(!c)return;
+    if(panel==='replaceTarget'){this.applyReplacement(c);return;}
+    this.closeColorPanel({selectedColor:c,pickMode:''});wx.showToast({title:'已选择 '+c.key,icon:'none'});
+  },
+  applyReplacement:function(c){
+    var source=this.replaceSource,changes=[];if(!source)return;
+    this.project.cells.forEach(function(cell,i){if(cell&&cell.color===source.color&&(cell.color!==c.color||cell.key!==c.key))changes.push({index:i,cell:cell});});
+    if(!changes.length){wx.showToast({title:'请选择不同的目标颜色',icon:'none'});return;}
+    this.recordUndo(changes);var cells=this.project.cells;changes.forEach(function(change){cells[change.index]={key:c.key,color:c.color};});
+    this.colorCache=null;this.project.edited=true;this.refreshCounts();this.persist();this.replaceSource=null;
+    if(this.data.colorPanelOpen)this.closeColorPanel({pickMode:'',replaceSourceKey:''});else{this.setData({pickMode:'',replaceSourceKey:''});this.draw();}
+    wx.showToast({title:'已替换 '+changes.length+' 格',icon:'none'});
+  },
+  chooseEraser:function(){this.setData({selectedColor:{key:'擦除',erase:true},pickMode:''});wx.showToast({title:'已选择擦除',icon:'none'});},
+  beginReplace:function(){if(this.data.busy){wx.showToast({title:'请等待图纸生成',icon:'none'});return;}if(!this.data.counts.length){wx.showToast({title:'图纸没有可替换的颜色',icon:'none'});return;}this.replaceSource=null;this.setData({pickMode:'replaceSource',replaceSourceKey:'',panel:''});},
+  clearUndo:function(){this.undoHistory=[];this.undoCellsCount=0;this.setData({undoCount:0});},
+  recordUndo:function(changes){
+    if(!this.undoHistory)this.undoHistory=[];this.undoCellsCount=this.undoCellsCount||0;
+    this.undoHistory.push(changes);this.undoCellsCount+=changes.length;
+    while(this.undoHistory.length>1&&(this.undoHistory.length>50||this.undoCellsCount>200000))this.undoCellsCount-=this.undoHistory.shift().length;
+    this.setData({undoCount:this.undoHistory.length});
+  },
+  undoEdit:function(){
+    if(this.data.busy){wx.showToast({title:'请等待图纸生成',icon:'none'});return;}
+    if(!this.undoHistory||!this.undoHistory.length){wx.showToast({title:'没有可撤销的修改',icon:'none'});return;}
+    var changes=this.undoHistory.pop(),cells=this.project.cells;changes.forEach(function(change){cells[change.index]=change.cell;});
+    this.undoCellsCount-=changes.length;this.colorCache=null;this.project.edited=true;this.setData({undoCount:this.undoHistory.length});this.refreshCounts();this.draw();this.persist();
+    wx.showToast({title:'已撤销',icon:'none'});
+  },
   openExcludes:function(){var list=(this.pendingSettings&&this.pendingSettings.excludeColors)||this.project.excludeColors||[];this.draftExcluded=list.slice();this.refreshFilterPalette();this.setData({panel:'exclude'});},
   refreshFilterPalette:function(){var excluded=this.draftExcluded;this.setData({filterPalette:this.data.palette.map(function(c){return {key:c.key,color:c.color,excluded:excluded.indexOf(c.color)>=0};})});},
   toggleExcluded:function(e){var color=this.data.filterPalette[e.currentTarget.dataset.index].color,i=this.draftExcluded.indexOf(color);if(i>=0)this.draftExcluded.splice(i,1);else this.draftExcluded.push(color);this.refreshFilterPalette();},
   confirmExcludes:function(){if(this.draftExcluded.length>=this.data.palette.length){error('请至少保留一种颜色。');return;}this.setData({panel:'settings'});this.requestChange({excludeColors:this.draftExcluded.slice()});},
-  toggleBoard:function(){var page=this,on=!this.data.boardMode;this.boardModeActive=on;this.setData({boardMode:on,panel:'',editing:false},function(){page.initStage(function(){page.draw();});});wx.setKeepScreenOn({keepScreenOn:on});},
+  toggleBoard:function(){var page=this,on=!this.data.boardMode;this.boardModeActive=on;this.setData({boardMode:on,panel:'',editing:false,pickMode:''},function(){page.initStage(function(){page.draw();});});wx.setKeepScreenOn({keepScreenOn:on});},
   syncLocks:function(){this.setData({scaleLocked:!!this.viewport.scaleLocked,positionLocked:!!this.viewport.positionLocked});},
   toggleScaleLock:function(){this.viewport.scaleLocked=!this.viewport.scaleLocked;this.syncLocks();},
   togglePositionLock:function(){this.viewport.positionLocked=!this.viewport.positionLocked;this.syncLocks();},
+  requestDraw:function() {
+    if(this.drawPending||this.drawDisposed)return;
+    var page=this, canvas=this.canvas, sequence=this.drawSequence||0;
+    this.drawPending=true;
+    function render(){if(sequence!==(page.drawSequence||0))return;page.drawPending=false;if(!page.drawDisposed)page.draw();}
+    if(canvas&&typeof canvas.requestAnimationFrame==='function')canvas.requestAnimationFrame(render);
+    else setTimeout(render,16);
+  },
+  colorCanvas:function() {
+    var p=this.project, old=this.colorCache;
+    if(old&&old.cells===p.cells&&old.width===p.width&&old.height===p.height)return old.canvas;
+    var cache={cells:p.cells,width:p.width,height:p.height,canvas:null};this.colorCache=cache;
+    if(typeof wx.createOffscreenCanvas!=='function')return null;
+    try {
+      var canvas=wx.createOffscreenCanvas({type:'2d',width:p.width,height:p.height});
+      var ctx=canvas.getContext('2d'), pixels=ctx.createImageData(p.width,p.height), data=pixels.data;
+      for(var i=0;i<p.width*p.height;i++){
+        var cell=p.cells[i],color=cell?parseInt(cell.color.slice(1),16):0xffffff,offset=i*4;
+        data[offset]=(color>>16)&255;data[offset+1]=(color>>8)&255;data[offset+2]=color&255;data[offset+3]=255;
+      }
+      ctx.putImageData(pixels,0,0);cache.canvas=canvas;
+    } catch(e) {cache.canvas=null;}
+    return cache.canvas;
+  },
   draw:function() {
     if(!this.ctx||!this.project||!this.project.cells.length||!this.rect)return;
     var ctx=this.ctx,v=this.viewport,p=this.project,d=this.dpr||1,w=this.rect.width,h=this.rect.height;
     ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#e8e6dc';ctx.fillRect(0,0,w,h);
     var left=Math.max(0,Math.floor(-v.x/v.scale)),top=Math.max(0,Math.floor(-v.y/v.scale));
     var right=Math.min(p.width,Math.ceil((w-v.x)/v.scale)),bottom=Math.min(p.height,Math.ceil((h-v.y)/v.scale));
+    var cached=this.colorCanvas(), usedCache=false;
+    if(cached){try{ctx.imageSmoothingEnabled=false;ctx.drawImage(cached,v.x,v.y,p.width*v.scale,p.height*v.scale);usedCache=true;}catch(e){this.colorCache.canvas=null;}}
+    if(!usedCache){
+      for(var fy=top;fy<bottom;fy++)for(var fx=left;fx<right;fx++){
+        var fill=p.cells[fy*p.width+fx];ctx.fillStyle=fill?fill.color:'#ffffff';ctx.fillRect(v.x+fx*v.scale,v.y+fy*v.scale,v.scale+.25,v.scale+.25);
+      }
+    }
+    if(v.scale>=8&&left<right&&top<bottom){
+      ctx.strokeStyle='rgba(70,80,70,.20)';ctx.lineWidth=.5;ctx.beginPath();
+      for(var gx=left;gx<=right;gx++){ctx.moveTo(v.x+gx*v.scale,v.y+top*v.scale);ctx.lineTo(v.x+gx*v.scale,v.y+bottom*v.scale);}
+      for(var gy=top;gy<=bottom;gy++){ctx.moveTo(v.x+left*v.scale,v.y+gy*v.scale);ctx.lineTo(v.x+right*v.scale,v.y+gy*v.scale);}
+      ctx.stroke();
+    }
+    if(v.scale<23)return;
     for(var y=top;y<bottom;y++)for(var x=left;x<right;x++){
       var c=p.cells[y*p.width+x],px=v.x+x*v.scale,py=v.y+y*v.scale;
-      ctx.fillStyle=c?c.color:'#ffffff';ctx.fillRect(px,py,v.scale+.25,v.scale+.25);
-      if(v.scale>=8){ctx.strokeStyle='rgba(70,80,70,.20)';ctx.lineWidth=.5;ctx.strokeRect(px,py,v.scale,v.scale);}
       if(c&&v.scale>=23){var rgb=parseInt(c.color.slice(1),16),lum=((rgb>>16)*299+((rgb>>8)&255)*587+(rgb&255)*114)/1000;ctx.fillStyle=lum<140?'#fff':'#222';ctx.font=Math.min(14,Math.max(7,v.scale*.3))+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.key,px+v.scale/2,py+v.scale/2);}
     }
   },
   canvasStart:function(e) {
     if(this.data.busy||!this.rect)return;
     var page=this, token=this.gestureToken=(this.gestureToken||0)+1;
-    var t=e.touches.map(function(point){return {clientX:point.clientX,clientY:point.clientY};});
+    var t=(e.touches||[]).map(touchPoint);if(!t.length||t.some(function(point){return !point;})){this.canvasCancel();return;}
     this.rectPending=true;this.pendingTouchEnd=false;
-    if(t.length===2){this.pinch={distance:distance(t[0],t[1]),scale:this.viewport.scale};this.lastTouch=null;this.moved=true;}
-    else if(t.length===1){this.lastTouch={x:t[0].clientX,y:t[0].clientY,startX:t[0].clientX,startY:t[0].clientY};this.moved=false;}
+    if(t.length===2){this.pinch={distance:distance(t[0],pointInSpace(t[1],t[0].local,this.rect)),scale:this.viewport.scale};this.lastTouch=null;this.moved=true;}
+    else if(t.length===1){this.lastTouch={x:t[0].x,y:t[0].y,startX:t[0].x,startY:t[0].y,local:t[0].local};this.moved=false;}
     wx.createSelectorQuery().in(this).select('#stage').boundingClientRect(function(rect){
-      if(!rect||token!==page.gestureToken)return;
-      page.rect=rect;page.rectPending=false;
+      if(token!==page.gestureToken)return;
+      if(rect)page.rect=rect;page.rectPending=false;
       if(page.pendingTouchEnd){page.pendingTouchEnd=false;page.canvasEnd({touches:[]});}
     }).exec();
   },
   canvasMove:function(e) {
-    var t=e.touches;if(!this.rect)return;
-    if(t.length===2&&this.pinch&&this.pinch.distance){var focus=midpoint(t[0],t[1],this.rect);this.viewport=viewport.zoom(this.viewport,this.pinch.scale*distance(t[0],t[1])/this.pinch.distance,focus.x,focus.y);this.moved=true;this.draw();return;}
-    if(t.length===1&&this.lastTouch){var dx=t[0].clientX-this.lastTouch.x,dy=t[0].clientY-this.lastTouch.y;if(Math.abs(t[0].clientX-this.lastTouch.startX)+Math.abs(t[0].clientY-this.lastTouch.startY)>5)this.moved=true;if(!this.data.editing){this.viewport=viewport.pan(this.viewport,dx,dy);this.draw();}this.lastTouch.x=t[0].clientX;this.lastTouch.y=t[0].clientY;}
+    var t=(e.touches||[]).map(touchPoint);if(!this.rect||t.some(function(point){return !point;}))return;
+    if(t.length===2&&this.pinch&&this.pinch.distance){var focus=midpoint(t[0],t[1],this.rect),second=pointInSpace(t[1],t[0].local,this.rect);this.viewport=viewport.zoom(this.viewport,this.pinch.scale*distance(t[0],second)/this.pinch.distance,focus.x,focus.y);this.moved=true;this.requestDraw();return;}
+    if(t.length===1&&this.lastTouch){var point=pointInSpace(t[0],this.lastTouch.local,this.rect),wasMoved=this.moved,dx=point.x-this.lastTouch.x,dy=point.y-this.lastTouch.y;if(Math.abs(point.x-this.lastTouch.startX)+Math.abs(point.y-this.lastTouch.startY)>5)this.moved=true;if(this.moved){if(!wasMoved){dx=point.x-this.lastTouch.startX;dy=point.y-this.lastTouch.startY;}this.viewport=viewport.pan(this.viewport,dx,dy);this.requestDraw();}this.lastTouch.x=point.x;this.lastTouch.y=point.y;}
   },
   canvasEnd:function(e) {
     if(e.touches&&e.touches.length)return;
+    var ended=touchPoint(e.changedTouches&&e.changedTouches[0]);
+    if(ended&&this.lastTouch&&Number.isFinite(this.lastTouch.startX)&&Number.isFinite(this.lastTouch.startY)){
+      ended=pointInSpace(ended,this.lastTouch.local,this.rect);
+      if(Math.abs(ended.x-this.lastTouch.startX)+Math.abs(ended.y-this.lastTouch.startY)>5)this.moved=true;
+    }
     if(this.rectPending){this.pendingTouchEnd=true;return;}
     this.gestureToken=(this.gestureToken||0)+1;
     if(!this.moved&&this.lastTouch&&this.data.editing&&!this.data.calibrating&&this.project){
-      var x=Math.floor((this.lastTouch.x-this.rect.left-this.viewport.x)/this.viewport.scale),y=Math.floor((this.lastTouch.y-this.rect.top-this.viewport.y)/this.viewport.scale),c=this.data.selectedColor;
-      if(x>=0&&x<this.project.width&&y>=0&&y<this.project.height&&c.key){this.undoCells=this.project.cells.slice();this.project.cells[y*this.project.width+x]=c.erase?null:{key:c.key,color:c.color};this.project.edited=true;this.refreshCounts();this.draw();this.persist();}
+      var touchX=Number.isFinite(this.lastTouch.startX)?this.lastTouch.startX:this.lastTouch.x,touchY=Number.isFinite(this.lastTouch.startY)?this.lastTouch.startY:this.lastTouch.y;
+      var local=pointInSpace({x:touchX,y:touchY,local:!!this.lastTouch.local},true,this.rect);
+      var x=Math.floor((local.x-this.viewport.x)/this.viewport.scale),y=Math.floor((local.y-this.viewport.y)/this.viewport.scale),c=this.data.selectedColor;
+      if(x>=0&&x<this.project.width&&y>=0&&y<this.project.height){
+        var idx=y*this.project.width+x,old=this.project.cells[idx],mode=this.data.pickMode;
+        if(mode){
+          if(!old)wx.showToast({title:'请选择有颜色的格子',icon:'none'});
+          else if(mode==='paint'){this.setData({selectedColor:{key:old.key,color:old.color},pickMode:''});wx.showToast({title:'已选择 '+old.key,icon:'none'});}
+          else if(mode==='replaceSource'){this.replaceSource={key:old.key,color:old.color};this.setData({pickMode:'replaceTarget',replaceSourceKey:old.key});}
+          else if(mode==='replaceTarget')this.applyReplacement(old);
+        }else if(c.key){var next=c.erase?null:{key:c.key,color:c.color};if(!((!old&&!next)||(old&&next&&old.key===next.key&&old.color===next.color))){this.recordUndo([{index:idx,cell:old}]);this.project.cells[idx]=next;this.colorCache=null;this.project.edited=true;this.refreshCounts();this.draw();this.persist();}}
+      }
     }
     this.lastTouch=null;this.pinch=null;
   },
@@ -201,7 +299,7 @@ Page({
   beginCalibration:function(){this.viewport=viewport.beginCalibration(this.viewport);this.setData({panel:'',calibrating:true});this.syncLocks();},
   cancelCalibration:function(){if(this.data.calibrating)this.viewport=viewport.cancelCalibration(this.viewport);this.setData({panel:'',calibrating:false});this.syncLocks();this.draw();},
   wheelStart:function(e){if(e.touches.length)this.wheelX=e.touches[0].clientX;},
-  wheelMove:function(e){if(this.wheelX===undefined||!e.touches.length)return;var x=e.touches[0].clientX,dx=x-this.wheelX;this.wheelX=x;this.viewport=viewport.adjustCalibration(this.viewport,dx,this.rect.width/2,this.rect.height/2);this.draw();},
+  wheelMove:function(e){if(this.wheelX===undefined||!e.touches.length)return;var x=e.touches[0].clientX,dx=x-this.wheelX;this.wheelX=x;this.viewport=viewport.adjustCalibration(this.viewport,dx,this.rect.width/2,this.rect.height/2);this.requestDraw();},
   wheelEnd:function(){this.wheelX=undefined;},
   confirmCalibration:function(){
     var page=this;this.viewport=viewport.confirmCalibration(this.viewport);this.setData({calibrating:false});this.syncLocks();
@@ -226,7 +324,7 @@ Page({
       if(index>=plan.pages.length){page.setData({exporting:false,panel:''});wx.showToast({title:'已保存 '+plan.pages.length+' 张',icon:'none'});return;}
       var part=plan.pages[index],canvas=page.exportCanvas;
       try{canvas.width=part.pixelWidth;canvas.height=part.pixelHeight;exporter.drawPage(canvas.getContext('2d'),plan,index);}catch(e){page.setData({exporting:false});error('生成图片失败，请尝试更小的分块。');return;}
-      setTimeout(function(){wx.canvasToTempFilePath({canvas:canvas,x:0,y:0,width:part.pixelWidth,height:part.pixelHeight,destWidth:part.pixelWidth,destHeight:part.pixelHeight,success:function(result){wx.saveImageToPhotosAlbum({filePath:result.tempFilePath,success:function(){next(index+1);},fail:function(){page.setData({exporting:false});error('已保存 '+index+' 张；相册保存失败，请检查权限或存储空间。');}});},fail:function(){page.setData({exporting:false});error('已保存 '+index+' 张；生成图片失败，请尝试分块。');}},page);},30);
+      setTimeout(function(){wx.canvasToTempFilePath({canvas:canvas,x:0,y:0,width:part.pixelWidth,height:part.pixelHeight,destWidth:part.pixelWidth,destHeight:part.pixelHeight,fileType:'png',success:function(result){wx.saveImageToPhotosAlbum({filePath:result.tempFilePath,success:function(){next(index+1);},fail:function(){page.setData({exporting:false});error('已保存 '+index+' 张；相册保存失败，请检查权限或存储空间。');}});},fail:function(){page.setData({exporting:false});error('已保存 '+index+' 张；生成图片失败，请尝试分块。');}},page);},30);
     }
     next(0);
   }

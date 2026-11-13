@@ -19,6 +19,22 @@ test('默认选项保留色号与坐标，输出统计',()=>{
   assert.ok(words.includes('1')); assert.equal(plan.options.showGrid,true);
 });
 
+test('默认导出至少达到参考项目每格 30 像素，并为小图提供更高分辨率',()=>{
+  const plan=exporter.createPlan(data,{});
+  assert.ok(plan.options.cellSize>=30);
+  assert.ok(plan.pages[0].pixelWidth>=data.width*30);
+});
+
+test('大图自动选择安全的最高默认清晰度，分块使用统一比例',()=>{
+  const square={width:180,height:180,cells:Array(180*180).fill(null)};
+  const plan=exporter.createPlan(square,{});
+  assert.ok(plan.options.cellSize>=12);
+  assert.ok(plan.pages.every(p=>p.pixelWidth*p.pixelHeight<=exporter.LIMIT_PIXELS));
+  const split=exporter.createPlan(square,{tileSize:100});
+  assert.ok(split.options.cellSize>=30);
+  assert.ok(split.pages.every(p=>p.pixelWidth*p.pixelHeight<=exporter.LIMIT_PIXELS));
+});
+
 test('镜像先于分块，统计和坐标按分块后所在位置计算',()=>{
   const plan=exporter.createPlan(data,{mirror:true,tileSize:2,showCoordinates:true});
   assert.deepEqual(plan.pages.map(({x,y,width,height})=>({x,y,width,height})),[{x:0,y:0,width:2,height:2},{x:2,y:0,width:1,height:2}]);
