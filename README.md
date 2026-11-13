@@ -224,7 +224,7 @@ node --test tests/*.test.js
 
 ## 问题反馈与功能建议
 
-欢迎通过 [GitHub Issues](https://github.com/zhoudeye716-wq/Small_utilities_save_much_effort/issues) 或 [Gitee Issues](https://gitee.com/bigpoint/Small_utilities_save_much_effort/issues) 提交反馈，创建时可选择 Bug 反馈或功能建议模板。
+欢迎通过 [GitHub Issues](https://github.com/zhoudeye716-wq/Small_utilities_save_much_effort/issues) 或 [Gitee Issues](https://gitee.com/bigpoint/Small_utilities_save_much_effort/issues) 提交反馈，创建时可选择 Bug 反馈、功能建议、使用体验或文档改进模板。
 
 ## 数据与恢复说明
 
