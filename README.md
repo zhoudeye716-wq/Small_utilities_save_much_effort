@@ -222,6 +222,10 @@ Android 更新信息和安装包发布在 [Gitee 镜像仓库的发行版](https
 node --test tests/*.test.js
 ```
 
+## 问题反馈与功能建议
+
+欢迎通过 [GitHub Issues](https://github.com/zhoudeye716-wq/Small_utilities_save_much_effort/issues) 或 [Gitee Issues](https://gitee.com/bigpoint/Small_utilities_save_much_effort/issues) 提交反馈，创建时可选择 Bug 反馈或功能建议模板。
+
 ## 数据与恢复说明
 
 设置和牌局状态保存在当前设备的应用本地存储中，不会自动同步到其他设备，也不会在微信小程序和 Android App 之间自动互通。返回设置时会保存当前牌局；尚未确认的下注不会保存。开始新局会在确认后替换已保存的围坐牌局；清除应用数据或卸载也可能使缓存丢失。

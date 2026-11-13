@@ -60,6 +60,10 @@
       },
       {
         "type": "folder",
+        "value": ".github"
+      },
+      {
+        "type": "folder",
         "value": "tests"
       },
       {
