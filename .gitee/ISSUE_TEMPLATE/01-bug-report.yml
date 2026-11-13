@@ -1,0 +1,49 @@
+name: 🐛 Bug 反馈
+description: 遇到异常、报错或功能无法正常使用时，请选择此模板
+title: "[Bug] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 请简要描述遇到了什么问题，以及发生在哪个功能或页面。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开……
+        2. 点击或操作……
+        3. 出现问题……
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期与实际结果
+      placeholder: |
+        预期：
+        实际：
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 使用环境
+      description: 请填写使用端、应用版本、设备型号和系统版本；如果知道，也可以填写微信及基础库版本。
+      placeholder: |
+        使用端：微信小程序 / Android 应用 / 微信开发者工具
+        应用版本：
+        设备型号及系统版本：
+        微信版本及小程序基础库版本：
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: 截图、录屏、日志或其他补充（可选）
+      description: 请先检查并遮盖昵称、网络地址等不希望公开的信息。
+    validations:
+      required: false
