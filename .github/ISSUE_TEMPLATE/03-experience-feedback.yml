@@ -1,0 +1,39 @@
+name: 🎨 使用体验反馈
+description: 现有功能不好理解、操作不顺手或界面需要改进时，请选择此模板
+title: "[体验] "
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 你使用的是哪个功能或页面？当时想完成什么操作？
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 遇到的不便
+      description: 请描述哪些地方让你感到困惑、不顺手或不容易操作。
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 希望如何改进（可选）
+      description: 你希望它如何变化？如果暂时没有想法，也可以留空。
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: 使用环境（可选）
+      description: 可以填写使用端、设备型号、系统版本及应用版本。
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: 截图或其他补充（可选）
+      description: 可以附上截图或录屏，请先遮盖不希望公开的信息。
+    validations:
+      required: false

@@ -1,0 +1,25 @@
+name: 💡 功能建议
+description: 有新工具或功能的想法时，请选择此模板
+title: "[建议] "
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 遇到的场景或问题
+      description: 你在什么情况下需要这个功能？现在有什么不方便？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 希望如何改进
+      description: 请描述你希望新增或调整的功能，以及期望的使用方式。
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他补充（可选）
+      description: 可以附上示例、参考链接或截图，也可以说明你考虑过的其他做法。
+    validations:
+      required: false

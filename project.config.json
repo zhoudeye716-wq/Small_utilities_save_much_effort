@@ -64,10 +64,6 @@
       },
       {
         "type": "folder",
-        "value": ".gitee"
-      },
-      {
-        "type": "folder",
         "value": "tests"
       },
       {
