@@ -15,6 +15,149 @@ function page() {
   return p;
 }
 
+test('高级色板显示当前品牌全部颜色，可添加套装外的色号并保存', () => {
+  const p=page();p.project.paletteSize=24;p.project.system='MARD';p.data.palette=require('../utils/perler/palette').getPalette('MARD',24);
+  let request;p.requestChange=v=>{request=v;};p.initStage=fn=>fn();p.draw=()=>{};p.openExcludes();assert.equal(p.data.colorPanelOpen,true);
+  assert.equal(p.data.filterPalette.length,313);
+  const index=p.data.filterPalette.findIndex(c=>c.key==='L08');assert.equal(p.data.filterPalette[index].excluded,true);
+  p.toggleExcluded({currentTarget:{dataset:{index}}});p.confirmExcludes();
+  assert.ok(request.customColors.includes(p.data.filterPalette[index].color));
+  assert.equal(request.customColors.length,25);assert.equal(p.data.colorPanelOpen,false);
+});
+
+test('更换套装时清除自定义色板，使用所选套装', () => {
+  const p=page();let request;p.requestChange=v=>{request=v;};p.data.colorValues=[221];
+  p.changeColorSize({detail:{value:0}});assert.deepEqual(request,{system:'MARD',paletteSize:221,customColors:null,excludeColors:[]});
+});
+
+test('高级选项选择额外色数，使用相同的色板更新流程', () => {
+  const p=page();let request;p.requestChange=v=>{request=v;};
+  assert.deepEqual(p.data.extraColorValues,[null,291,280,264,216,192]);
+  p.changeExtraColorSize({detail:{value:3}});
+  assert.deepEqual(request,{system:'MARD',paletteSize:264,customColors:null,excludeColors:[]});
+});
+
+test('高级选项只提供色数，不显示品牌和逐色选择入口', () => {
+  const template=require('node:fs').readFileSync(require('node:path').join(__dirname,'../pages/perler-editor/index.wxml'),'utf8');
+  assert.match(template,/bindchange="changeExtraColorSize"/);
+  assert.doesNotMatch(template,/bindchange="changeSystem"|bindtap="openExcludes"/);
+});
+
+test('旧品牌项目打开后保留原色板，选择新色数时先提示再转换', () => {
+  const p=page(),local=require('../utils/perler/wx-store'),old=local.store;
+  const project={id:'old-brand',name:'旧图',width:2,height:1,system:'COCO',paletteSize:291,mode:'dominant',cells:[{key:'A',color:'#fff'}]};
+  local.store=()=>({load:()=>project});let dialog,change;
+  global.wx.showModal=o=>{dialog=o;};p.requestChange=v=>{change=v;};
+  try {
+    p.onLoad({id:project.id});assert.equal(project.system,'COCO');assert.equal(project.cells[0].key,'A');
+    p.changeExtraColorSize({detail:{value:3}});assert.equal(change,undefined);assert.match(dialog.content,/MARD/);
+    dialog.success({confirm:false});assert.equal(change,undefined);
+    dialog.success({confirm:true});assert.equal(change.system,'MARD');assert.equal(change.paletteSize,264);
+  } finally {local.store=old;}
+});
+
+test('切换品牌时先确认会清除自定义色号，取消不变更', () => {
+  const p=page();p.project.customColors=['#ffffff'];let modal,changed=0;
+  global.wx.showModal=o=>{modal=o;};p.requestChange=()=>{changed++;};
+  p.changeSystem({detail:{value:1}});assert.equal(changed,0);modal.success({confirm:false});assert.equal(changed,0);
+  modal.success({confirm:true});assert.equal(changed,1);
+});
+
+test('自定义色板保存后生成只使用手动选择的套装外色号', async () => {
+  const p=page();const c=require('../utils/perler/palette').getPalette('MARD',313).find(x=>x.key==='L08');
+  p.project={width:1,height:1,sourceWidth:1,sourceHeight:1,paletteSize:24,customColors:[c.color],system:'MARD',mode:'average',cells:[]};
+  p.viewport={scaleLocked:false};p.fit=()=>{};p.draw=()=>{};let done;const saved=new Promise(resolve=>{done=resolve;});p.persist=()=>{done();return true;};
+  const image={};Object.defineProperty(image,'src',{set(){setTimeout(()=>image.onload(),0);}});
+  p.sampleCanvas={width:0,height:0,createImage:()=>image,getContext(){return {clearRect(){},drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([255,255,255,255])})};}};
+  p.regenerate();await saved;assert.equal(p.project.cells[0].key,'L08');assert.deepEqual(p.project.customColors,[c.color]);
+  assert.equal(p.data.colorNames[p.data.colorIndex],'自定义（1 色）');assert.deepEqual(p.data.palette,[c]);
+});
+
+test('每个品牌高级色板都包含当前参考映射的全部颜色', () => {
+  const palettes=require('../utils/perler/palette');
+  for(const system of palettes.systems){const p=page();p.project.system=system;p.project.paletteSize=system==='MARD'?221:291;p.openExcludes();
+    assert.equal(p.data.filterPalette.length,system==='MARD'?313:palettes.getPalette(system).length,system);}
+});
+
+test('手动清空颜色后不能保存空色板', () => {
+  const p=page();let message='';global.wx.showModal=o=>{message=o.content;};p.openExcludes();p.clearAllColors();
+  assert.equal(p.data.draftSelectedCount,0);p.confirmExcludes();assert.match(message,/至少/);assert.equal(p.data.panel,'exclude');
+  p.selectAllColors();assert.equal(p.data.draftSelectedCount,313);
+});
+
+test('图纸规格按指定顺序显示，默认 52 格', () => {
+  const p=page();
+  assert.deepEqual(p.data.sizeValues,[130,104,78,52,32,29]);
+  assert.equal(p.data.sizeValues[p.data.sizeIndex],52);
+});
+
+test('选择 313 色和 168 色会使用对应的套装色卡', () => {
+  const p=page();
+  p.data.colorValues=[313,221,168,144,120,96,72,48,24];p.data.colorIndex=1;
+  let changes=[];p.requestChange=value=>{changes.push(value.paletteSize);};
+  p.changeColorSize({detail:{value:0}});p.changeColorSize({detail:{value:2}});assert.deepEqual(changes,[313,168]);
+});
+
+test('旧项目的 280 色档位仍能打开并保留', () => {
+  const p=page(),local=require('../utils/perler/wx-store'),old=local.store;
+  const project={id:'old',name:'旧图',width:52,height:52,system:'MARD',paletteSize:280,mode:'dominant',cells:[]};
+  local.store=()=>({load:()=>project});
+  try {p.onLoad({id:'old'});assert.equal(p.data.colorNames[p.data.colorIndex],'280 色');assert.equal(p.data.palette.length,280);assert.equal(project.paletteSize,280);}
+  finally {local.store=old;}
+});
+
+test('首次选择图片后先裁剪，取消不创建项目', () => {
+  const p=page();p.project=null;let saved=0;p.persist=()=>{saved++;return true;};
+  global.wx.getWindowInfo=()=>({windowWidth:400,windowHeight:800});
+  p.beginCrop('/tmp/picture.jpg',1200,800,'jpg',true);
+  assert.equal(p.data.cropVisible,true);
+  assert.deepEqual(p.cropDraft.rect,{x:200,y:0,width:800,height:800});
+  p.cancelCrop();assert.equal(p.project,null);assert.equal(saved,0);
+});
+
+test('裁剪项目有手动编辑时复用覆盖或另存确认', () => {
+  const p=page();p.project.edited=true;let options;
+  p.initStage=fn=>fn();p.draw=()=>{};
+  global.wx.getWindowInfo=()=>({windowWidth:400,windowHeight:800});
+  global.wx.showActionSheet=o=>{options=o.itemList;};
+  p.beginCrop('/data/pic.jpg',1200,800,'jpg',false);p.confirmCrop();
+  assert.deepEqual(options,['替换当前图纸（丢弃单格修改）','另存为新项目']);
+  assert.equal(p.project.cells[0].key,'A');
+});
+
+test('新图保存失败且图片清理失败时保留裁剪选择并允许重试', () => {
+  const p=page(),local=require('../utils/perler/wx-store'),copy=local.copyImage,discard=local.discardCopy;
+  p.project=null;p.persist=()=>false;global.wx.getWindowInfo=()=>({windowWidth:400,windowHeight:800});global.wx.showModal=()=>{};
+  local.copyImage=()=>'/data/project.jpg';local.discardCopy=()=>{throw new Error('failed');};
+  try {p.beginCrop('/tmp/image.jpg',1200,800,'jpg',true);p.confirmCrop();assert.equal(p.project,null);assert.ok(p.cropDraft);assert.equal(p.data.cropVisible,true);}
+  finally {local.copyImage=copy;local.discardCopy=discard;}
+});
+
+test('裁剪坐标用于采样，长图按最长边生成，并只使用所选套装色号', async () => {
+  const p=page();p.project={width:52,height:0,maxSide:52,sourceWidth:1000,sourceHeight:800,crop:{x:100,y:50,width:300,height:600},paletteSize:24,system:'MARD',mode:'average',cells:[]};
+  p.viewport={scaleLocked:false};p.fit=()=>{};p.draw=()=>{};let args,done;
+  const saved=new Promise(resolve=>{done=resolve;});p.persist=()=>{done();return true;};
+  const image={};Object.defineProperty(image,'src',{set(){setTimeout(()=>image.onload(),0);}});
+  const canvas={width:0,height:0,createImage:()=>image,getContext(){return {clearRect(){},drawImage(...values){args=values;},getImageData:()=>({data:new Uint8ClampedArray(canvas.width*canvas.height*4).fill(255)})};}};
+  p.sampleCanvas=canvas;p.regenerate();await saved;
+  assert.deepEqual(args.slice(1,5),[100,50,300,600]);
+  assert.equal(p.project.width,26);assert.equal(p.project.height,52);
+  assert.equal(p.project.paletteSize,24);assert.deepEqual(p.project.crop,{x:100,y:50,width:300,height:600});
+  const available=new Set(require('../utils/perler/palette').getPalette('MARD',24).map(c=>c.key));
+  assert.ok(p.project.cells.every(c=>c && available.has(c.key)));
+});
+
+test('切换品牌时使用真实存在的色数档位', () => {
+  const p=page();p.project.paletteSize=221;let request;p.requestChange=value=>{request=value;};
+  p.changeSystem({detail:{value:1}});assert.deepEqual(request,{system:'COCO',paletteSize:291,customColors:null,excludeColors:[]});
+  p.project.system='COCO';p.project.paletteSize=291;p.changeSystem({detail:{value:0}});assert.deepEqual(request,{system:'MARD',paletteSize:291,customColors:null,excludeColors:[]});
+});
+
+test('更换套装时清除可能不属于新套装的画笔色号', () => {
+  const p=page();p.project.paletteSize=291;p.data.selectedColor={key:'P21',color:'#ecbebf'};
+  p.requestChange({paletteSize:24});assert.deepEqual(p.data.selectedColor,{});clearTimeout(p.updateTimer);
+});
+
 test('参数更新期间保留原始网格，直至生成成功', () => {
   const p=page(), original=p.project.cells;
   p.requestChange({width:20});

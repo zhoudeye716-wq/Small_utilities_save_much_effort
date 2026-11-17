@@ -60,13 +60,15 @@
 
 ### 拼豆工作台
 
-- 从相册选择图片，按长宽比生成拼豆图纸；支持多种色号体系、主色或平均色采样、相近色合并与单格修改。
+- 从相册选择图片后先裁剪，默认居中选取最大正方形，也可自由调整范围；保留原图副本，之后可以重新裁剪。
+- 默认适配 52×52 底板与 MARD 221 色；支持常见图纸规格、24 至 313 色的 MARD 套装预设，以及在高级选项中切换色号体系、调整格数。可从当前品牌的完整参考色板手动增减色号并保存在项目中。其他品牌使用现有参考映射，请核对实际套装；特殊效果色在屏幕上的显示仅供参考。
+- 支持主色或平均色采样、相近色合并与单格修改；长方形图纸保持裁剪比例并以所选规格限制最长边。
 - 多份项目及图片副本保存在本机，编辑时自动保存；删除项目会删除项目文件及其本机图片副本，不删除相册原图或已导出的图片。
 - 底板对照模式可双指缩放、滚轮微调柱距，分别锁定比例和位置；可在本设备保存多份命名比例。屏幕物理尺寸需手动校准，不同设备之间不会自动通用。
 - 导出支持格内色号、色号统计、水平镜像、坐标、格线和大图正方形分块；图片保存到相册时需要对应系统授权。
 - 拼豆功能无服务器，图片和图纸在本机处理保存。应用的其他功能（例如局域网联机和 Android 更新）仍会使用网络；清除数据或卸载可能删除本机项目。
 
-本功能参考并使用了 [Zippland/perler-beads](https://github.com/Zippland/perler-beads) 的色号映射和图像处理思路，感谢原作者与贡献者。参考项目的许可声明保留在 `vendor/perler-beads/LICENSE`。
+本功能参考并使用了 [Zippland/perler-beads](https://github.com/Zippland/perler-beads) 的色号映射和图像处理思路，以及 [xiaodengaikeji/pindou](https://github.com/xiaodengaikeji/pindou) 的 MARD 套装色号分组，感谢原作者与贡献者。许可声明分别保留在 `vendor/perler-beads/LICENSE` 和 `vendor/pindou-presets/LICENSE`；其他色号与分组参考 [Mard Beads 色卡](https://mardbeads.com/mard-beads-color-chart)、[168 色参考](https://gogopixelbeads.com/zh/mard-color-chart/)和 [313 色参考](https://www.moneyshake.cn/academy/mard-colors)。
 
 ### 线下围坐
 

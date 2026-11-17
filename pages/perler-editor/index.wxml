@@ -1,18 +1,22 @@
 <view class="page">
   <view wx:if="{{!boardMode}}" class="top"><view><view class="label">BEAD STUDIO · 本机工作台</view><view class="title">{{name}}</view></view><button class="ghost" bindtap="renameProject">重命名</button></view>
   <view wx:if="{{!boardMode}}" class="privacy">拼豆功能无服务器，图片和图纸保存在本机，可在 Git 仓库核实。</view>
-  <view wx:if="{{!loaded}}" class="placeholder"><view>挑一张喜欢的图片</view><button class="primary" bindtap="chooseImage">从相册选择</button></view>
-  <block wx:if="{{loaded}}">
-    <view wx:if="{{!boardMode}}" class="toolbar"><button class="chip {{panel==='settings'?'selected':''}}" data-panel="settings" bindtap="togglePanel">生成设置</button><button class="chip {{editing?'selected':''}}" bindtap="toggleEditing">{{editing?'退出改单格':'改单格'}}</button><button class="chip" bindtap="toggleBoard">底板对照</button><button class="chip" bindtap="openExport">导出图纸</button></view>
+  <view wx:if="{{!loaded && !cropVisible}}" class="placeholder"><view>挑一张喜欢的图片</view><button class="primary" bindtap="chooseImage">从相册选择</button></view>
+  <block wx:if="{{loaded && !cropVisible}}">
+    <view wx:if="{{!boardMode}}" class="card quick-settings">
+      <view class="row"><text>图纸规格</text><picker range="{{sizeNames}}" value="{{sizeIndex >= 0 ? sizeIndex : 0}}" bindchange="changeSize"><view class="picker">{{sizeIndex >= 0 ? sizeNames[sizeIndex] : columns + ' 格（自定义）'}} ▾</view></picker></view>
+      <view class="row"><text>套装色数</text><picker range="{{colorNames}}" value="{{colorIndex}}" bindchange="changeColorSize"><view class="picker">{{colorNames[colorIndex]}} ▾</view></picker></view>
+      <view wx:if="{{systemIndex !== 0}}" class="hint">旧项目保留原色板；选择色数后将使用 MARD 色板重新生成。</view>
+    </view>
+    <view wx:if="{{!boardMode}}" class="toolbar"><button class="chip {{panel==='settings'?'selected':''}}" data-panel="settings" bindtap="togglePanel">高级选项 {{panel==='settings'?'▴':'▾'}}</button><button class="chip" bindtap="recrop">重新裁剪</button><button class="chip {{editing?'selected':''}}" bindtap="toggleEditing">{{editing?'退出改单格':'改单格'}}</button><button class="chip" bindtap="toggleBoard">底板对照</button><button class="chip" bindtap="openExport">导出图纸</button></view>
     <view wx:if="{{!boardMode && panel==='settings'}}" class="settings card">
-      <view class="row"><text>横向格数</text><input type="number" value="{{columns}}" bindinput="changeColumns"/><text>× {{height}}</text></view>
-      <view class="row"><text>色号体系</text><picker range="{{systems}}" value="{{systemIndex}}" bindchange="changeSystem"><view class="picker">{{systems[systemIndex]}} ▾</view></picker></view>
-      <view class="row"><text>可用颜色</text><button class="chip" bindtap="openExcludes">排除不需要的颜色</button></view>
+      <view class="row"><text>最长边格数</text><input type="number" value="{{columns}}" bindinput="changeColumns"/><text>格</text></view>
+      <view class="row"><text>其他色数</text><picker range="{{extraColorNames}}" value="0" bindchange="changeExtraColorSize"><view class="picker">选择其他色数 ▾</view></picker></view>
       <view class="row"><text>图片处理</text><picker range="{{modeNames}}" value="{{modeIndex}}" bindchange="changeMode"><view class="picker">{{modeNames[modeIndex]}} ▾</view></picker></view>
       <view class="row"><text>相近色合并</text><text>{{mergeThreshold}}</text></view><slider min="0" max="30" step="1" value="{{mergeThreshold}}" activeColor="#698a73" bindchange="changeMerge" />
       <view class="row"><text>去除边缘背景</text><switch checked="{{removeBackground}}" bindchange="changeBackground" color="#5b806b" /></view>
       <view wx:if="{{removeBackground}}" class="hint">根据边缘颜色估计背景，复杂图片可能误删；关闭此选项可恢复。</view>
-      <view class="hint">设置变更后自动更新图纸。图纸比例与原图保持一致。</view>
+      <view class="hint">设置变更后自动更新图纸；请对照实际套装色号，屏幕颜色仅供参考。</view>
     </view>
     <view wx:if="{{editing && !boardMode}}" class="editbar">
       <view class="edit-status"><view class="edit-status-title">{{pickMode==='paint' ? '请点图纸上的颜色取色' : pickMode==='replaceSource' ? '第 1 步：点要替换的颜色' : pickMode==='replaceTarget' ? '第 2 步：为 ' + replaceSourceKey + ' 选择新颜色' : selectedColor.erase ? '当前：擦除' : selectedColor.key ? '当前色号：' + selectedColor.key : '先选择一个色号'}}</view><view class="hint">{{pickMode ? '单指拖动画面，双指缩放，点格子选色' : '点格子修改，拖动图纸，双指缩放'}}</view></view>
@@ -25,10 +29,27 @@
     <view wx:if="{{busy}}" class="loading">正在生成，请稍候…</view>
     <view wx:if="{{!boardMode}}" class="summary card"><view class="summary-title">用色统计 <text>{{colorCount}} 色 · {{total}} 颗</text></view><scroll-view scroll-x class="colors"><view class="color-row"><view wx:for="{{counts}}" wx:key="key" class="color-pill"><view class="swatch" style="background:{{item.color}}"></view><text>{{item.key}} · {{item.count}}</text></view></view></scroll-view></view>
   </block>
+  <view wx:if="{{cropVisible}}" class="crop-overlay">
+    <view class="crop-heading">裁剪图片</view><view class="crop-help">拖动框调整位置，拖动边缘或角点调整范围</view>
+    <view class="crop-viewport" style="width:{{cropWidth}}px;height:{{cropHeight}}px;">
+      <image class="crop-image" src="{{cropImage}}" mode="scaleToFill" />
+      <view class="crop-selection" style="{{cropRectStyle}}" data-edge="move" bindtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" bindtouchend="cropTouchEnd" bindtouchcancel="cropTouchEnd">
+        <view class="crop-handle crop-left" data-edge="left" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-handle crop-right" data-edge="right" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-handle crop-top" data-edge="top" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-handle crop-bottom" data-edge="bottom" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-corner crop-top-left" data-edge="top-left" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-corner crop-top-right" data-edge="top-right" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-corner crop-bottom-left" data-edge="bottom-left" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+        <view class="crop-corner crop-bottom-right" data-edge="bottom-right" catchtouchstart="cropTouchStart" catchtouchmove="cropTouchMove" catchtouchend="cropTouchEnd" />
+      </view>
+    </view>
+    <view class="crop-actions"><button bindtap="cancelCrop">取消</button><button bindtap="resetCrop">恢复 1:1</button><button class="primary" bindtap="confirmCrop">确认裁剪</button></view>
+  </view>
   <canvas id="sample-canvas" type="2d" class="hidden-canvas" />
   <canvas id="export-canvas" type="2d" class="hidden-canvas" />
   <view wx:if="{{panel==='colors' || panel==='replaceTarget'}}" class="mask"><view class="sheet"><view class="sheet-title">{{panel==='replaceTarget'?'全图换色 · 选择新色':'选择色号'}} <text bindtap="closePanel">×</text></view><view class="hint">{{panel==='replaceTarget'?'选择新颜色，原色的所有格子都会替换':'选择后点图纸上的格子上色'}}</view><scroll-view scroll-y class="palette"><view class="palette-grid"><view wx:for="{{palette}}" wx:key="color" class="palette-cell" data-index="{{index}}" bindtap="selectColor"><view style="background:{{item.color}}"></view><text>{{item.key}}</text></view></view></scroll-view></view></view>
-  <view wx:if="{{panel==='exclude'}}" class="mask"><view class="sheet"><view class="sheet-title">排除颜色 <text bindtap="closePanel">×</text></view><view class="hint">点击色号切换；带 × 的颜色不会用于自动生成。</view><scroll-view scroll-y class="palette"><view class="palette-grid"><view wx:for="{{filterPalette}}" wx:key="color" class="palette-cell" data-index="{{index}}" bindtap="toggleExcluded"><view style="background:{{item.color}}">{{item.excluded?'×':''}}</view><text>{{item.key}}</text></view></view></scroll-view><button class="primary" bindtap="confirmExcludes">确定</button></view></view>
+  <view wx:if="{{panel==='exclude'}}" class="mask"><view class="sheet"><view class="sheet-title">选择 {{systems[systemIndex]}} 色号 <text bindtap="closePanel">×</text></view><view class="hint">显示当前品牌的全部参考色号，点击切换；带 × 的色号不会用于生成。特殊色以实物为准。</view><view class="palette-actions"><button class="chip" bindtap="selectAllColors">全选</button><button class="chip" bindtap="clearAllColors">清空</button><text>已选 {{draftSelectedCount}} 色</text></view><scroll-view scroll-y class="palette"><view class="palette-grid"><view wx:for="{{filterPalette}}" wx:key="color" class="palette-cell" data-index="{{index}}" bindtap="toggleExcluded"><view style="background:{{item.color}}">{{item.excluded?'×':''}}</view><text>{{item.key}}</text></view></view></scroll-view><button class="primary" bindtap="confirmExcludes">确定</button></view></view>
   <view wx:if="{{panel==='calibration'}}" class="mask"><view class="sheet"><view class="sheet-title">编辑映射比例 <text bindtap="cancelCalibration">×</text></view><view class="hint">先双指缩放图纸，再用下方滚轮左右微调。将透明底板放在屏幕上，对齐相邻柱子的中心。</view><view class="calibration-actions"><button bindtap="beginCalibration">开始调整</button><button bindtap="openProfiles">选择已存比例</button></view></view></view>
   <view wx:if="{{calibrating}}" class="calibration-bar"><view class="wheel" bindtouchstart="wheelStart" bindtouchmove="wheelMove" bindtouchend="wheelEnd">‹　||||||||||||||||　›<text>左右拨动微调</text></view><button class="primary" bindtap="confirmCalibration">确定</button><button bindtap="cancelCalibration">取消</button></view>
   <view wx:if="{{panel==='profiles'}}" class="mask"><view class="sheet"><view class="sheet-title">{{profileAction==='overwrite'?'选择要覆盖的比例':'已保存的比例'}} <text bindtap="closePanel">×</text></view><view wx:if="{{!profiles.length}}" class="hint">暂无保存的比例，先调整并保存。</view><scroll-view scroll-y class="palette"><view wx:for="{{profiles}}" wx:key="id" class="profile"><text data-id="{{item.id}}" bindtap="applyProfile">{{item.name}}</text><button wx:if="{{profileAction!=='overwrite'}}" data-id="{{item.id}}" bindtap="deleteProfile">删除</button></view></scroll-view></view></view>

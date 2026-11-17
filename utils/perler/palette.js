@@ -294,13 +294,26 @@ var mapping = {
 } ;
 var systems = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝'];
 
-function getPalette(system) {
+// 313 色新增的屏幕参考值：https://www.moneyshake.cn/academy/mard-colors
+var mardExtended = [
+  ['T02','#2A2A28'],['T03','#D23017'],['T04','#FB4F70'],['T05','#11B25B'],['T06','#0FB19C'],
+  ['T07','#0E75AB'],['T08','#124DDE'],['T09','#704EA3'],['T10','#E7D866'],['T11','#F89546'],
+  ['Y06','#E2CBAB'],['Y07','#E2EDD0'],['Y08','#12B53B'],['Y09','#C6D20F'],
+  ['L01','#BEC3D3'],['L02','#BBCD81'],['L03','#49C281'],['L04','#0692F6'],
+  ['L05','#A67ADC'],['L06','#E47FB4'],['L07','#E4A880'],['L08','#87858B']
+];
+
+function getPalette(system, size) {
   if (systems.indexOf(system) < 0) throw new Error('不支持的色板');
-  return Object.keys(mapping).filter(function (hex) {
-    return /^#[0-9a-f]{6}$/i.test(hex) && !!mapping[hex][system];
+  var presets = require('./mard-presets');
+  var allowed = size && system === 'MARD' ? presets.codes(Number(size)) : null;
+  var result = Object.keys(mapping).filter(function (hex) {
+    return /^#[0-9a-f]{6}$/i.test(hex) && !!mapping[hex][system] && (!allowed || allowed.indexOf(presets.normalize(mapping[hex].MARD)) >= 0);
   }).map(function (hex) {
     return { key: mapping[hex][system], color: hex };
   });
+  if(system === 'MARD' && Number(size) === 313) result = result.concat(mardExtended.map(function(item){return {key:item[0],color:item[1]};}));
+  return result;
 }
 
 module.exports = { getPalette: getPalette, systems: systems };
