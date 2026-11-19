@@ -37,6 +37,10 @@
 .tags text:nth-child(2) { color: #c2a9ef; background: rgba(132, 88, 192, .32); }
 .tags text:nth-child(3) { color: #e6ca6a; background: rgba(169, 126, 26, .32); }
 .home-footer { margin-top: 56rpx; color: #7888a1; text-align: center; font-size: 23rpx; letter-spacing: 2rpx; }
+.backup-entry { margin-top:48rpx;color:#b7c6d8;text-align:center;font-size:25rpx;padding:18rpx; }
+.recovery-mask {position:fixed;inset:0;z-index:9999;background:rgba(4,12,21,.9);display:flex;align-items:center;justify-content:center;padding:32rpx;}
+.recovery-dialog {background:#1b2d3c;border-radius:24rpx;padding:34rpx;color:#eaf2f3;font-size:27rpx;line-height:1.8;max-width:640rpx;}
+.recovery-dialog button {margin-top:26rpx;background:#377e6a;color:#fff;font-size:27rpx;}
 .update-mask { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 36rpx; background: rgba(3, 10, 20, .76); }
 .update-dialog { width: 100%; max-width: 620rpx; box-sizing: border-box; padding: 36rpx; border: 1rpx solid rgba(175, 209, 227, .18); border-radius: 28rpx; background: #1c2b40; color: #eff8fa; }
 .update-title { font-size: 38rpx; font-weight: 700; }

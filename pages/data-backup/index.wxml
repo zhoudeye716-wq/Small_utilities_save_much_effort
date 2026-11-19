@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="title">数据备份与恢复</view>
+  <view class="intro">数据在本机打包。选择分享后，文件会交给你选择的应用；倒计时不包含在备份中。</view>
+  <view class="card">
+    <view class="heading">创建备份</view>
+    <checkbox-group bindchange="selectCategories">
+      <label class="option" wx:for="{{categories}}" wx:key="value"><checkbox value="{{item.value}}" checked="{{item.checked}}" color="#4b927a"/><text>{{item.name}}</text></label>
+    </checkbox-group>
+    <view wx:if="{{perlerEnabled}}" class="project-list"><view class="hint">选择要备份的拼豆项目，可分批导出原图。</view><view wx:if="{{!projectsLoaded}}" class="hint">项目列表暂不可用。</view><scroll-view scroll-y="true" class="project-scroll"><checkbox-group bindchange="selectProjects"><label class="option" wx:for="{{projects}}" wx:key="id"><checkbox value="{{item.id}}" checked="{{item.checked}}" color="#4b927a"/><text>{{item.name}}{{item.invalid?'（读取失败）':''}}</text></label></checkbox-group></scroll-view></view>
+    <view class="line"><text>设置备份密码</text><switch checked="{{encrypted}}" bindchange="toggleEncryption" color="#4b927a"/></view>
+    <view wx:if="{{!encrypted}}" class="hint">未设置密码时，备份数据未加密。</view>
+    <view wx:if="{{encrypted}}" class="passwords"><input password="true" value="{{password}}" data-key="password" bindinput="inputValue" placeholder="密码：6～18 位，不含中文"/><input password="true" value="{{passwordAgain}}" data-key="passwordAgain" bindinput="inputValue" placeholder="再次输入密码"/><text class="hint">密码无法找回，请妥善保管。</text></view>
+    <button class="primary main-action" bindtap="startExport" disabled="{{busy}}">生成备份</button>
+  </view>
+  <view class="card">
+    <view class="heading">恢复备份</view>
+    <view class="hint">本软件生成的备份在下面列表中，点「导入」即可恢复。它们保存在软件内部，系统文件管理器通常看不到；卸载或清除数据可能丢失。请点「分享」将备份另存到微信、QQ 或网盘。选择文件用于导入其他位置的备份。</view>
+    <button class="secondary main-action" bindtap="chooseFile" disabled="{{busy}}">选择备份文件</button>
+    <view wx:if="{{!files.length}}" class="hint empty">本机暂无备份</view>
+    <view class="file" wx:for="{{files}}" wx:key="*this"><view class="file-name">{{item}}</view><view class="file-actions"><button class="small" data-name="{{item}}" bindtap="openLocal">导入</button><button class="small" data-name="{{item}}" bindtap="shareFile">分享</button><button wx:if="{{canCopyToDevice}}" class="small" data-name="{{item}}" bindtap="copyToDevice" disabled="{{busy}}">保存到设备</button></view></view>
+  </view>
+  <view wx:if="{{status}}" class="status">{{status}}</view>
+  <view wx:if="{{needsPassword}}" class="card"><view class="heading">输入备份密码</view><input password="true" value="{{importPassword}}" data-key="importPassword" bindinput="inputValue" placeholder="输入导出时设置的密码"/><view class="actions"><button class="secondary" bindtap="cancelImport">取消</button><button class="primary" bindtap="openBackup" disabled="{{busy}}">解锁</button></view></view>
+  <view wx:if="{{importing}}" class="card">
+    <view class="heading">确认合并</view><view class="hint">相同数据自动跳过；不同数据需选择保留的版本。选择完成后才会写入。</view>
+    <view wx:if="{{conflicts.length}}" class="actions"><button class="secondary" data-choice="local" bindtap="chooseAll" disabled="{{busy}}">全部保留本机</button><button class="secondary" data-choice="backup" bindtap="chooseAll" disabled="{{busy}}">全部保留备份</button></view>
+    <view wx:for="{{conflicts}}" wx:key="id" class="conflict"><view class="conflict-title">{{item.title}}</view><view>变化：{{item.changed}}</view><view>本机：{{item.localText}}</view><view>备份：{{item.backupText}}</view><view class="actions"><button class="small {{item.choice==='local'?'chosen':''}}" data-id="{{item.id}}" data-choice="local" bindtap="chooseConflict" disabled="{{busy}}">保留本机</button><button class="small {{item.choice==='backup'?'chosen':''}}" data-id="{{item.id}}" data-choice="backup" bindtap="chooseConflict" disabled="{{busy}}">保留备份</button></view></view>
+    <view wx:for="{{issues}}" wx:for-item="issue" wx:key="index" class="conflict">
+      <view wx:if="{{issue.type==='duplicate-name'}}">玩家昵称「{{issue.name}}」重复，请选择一人改名或移出当前名单：<view wx:for="{{issue.items}}" wx:for-item="person" wx:key="id" class="actions"><text>{{person.label}}</text><button class="small" data-id="{{person.id}}" bindtap="editPlayer" disabled="{{busy}}">改名</button><button class="small" data-id="{{person.id}}" bindtap="archivePlayer" disabled="{{busy}}">移出</button></view></view>
+      <view wx:if="{{issue.type==='duplicate-group-name'}}">组合名称「{{issue.name}}」重复：<view wx:for="{{issue.items}}" wx:for-item="group" wx:key="id" class="actions"><text>{{group.label}}</text><button class="small" data-id="{{group.id}}" bindtap="editGroup" disabled="{{busy}}">改名</button></view></view>
+      <view wx:if="{{issue.type==='missing-group'}}">玩家 {{issue.playerId}} 的组合不存在。<button class="small" data-id="{{issue.playerId}}" bindtap="removeGroupLink" disabled="{{busy}}">解除无效组合</button></view>
+    </view>
+    <view class="actions"><button class="secondary" bindtap="cancelImport" disabled="{{busy}}">取消</button><button class="primary" bindtap="confirmImport" disabled="{{busy}}">确认导入</button></view>
+  </view>
+</view>

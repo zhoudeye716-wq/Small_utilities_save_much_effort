@@ -82,7 +82,7 @@
         <view class="hint">离开小程序后不会响铃，回来时会按实际经过的时间补算。</view>
         <scroll-view scroll-y class="timer-list">
           <view wx:if="{{!list.length}}" class="hint">还没有计时</view>
-          <view class="timer-row" wx:for="{{list}}" wx:key="id"><view class="timer-detail"><text>{{item.name}}</text><text class="hint">{{item.display}} · {{item.paused ? '已暂停' : '计时中'}}</text></view><button data-id="{{item.id}}" bindtap="toggleTimer">{{item.paused ? '继续' : '暂停'}}</button><button data-id="{{item.id}}" bindtap="deleteTimer">删除</button></view>
+          <view class="timer-row" wx:for="{{list}}" wx:key="id"><view class="timer-detail"><text>{{item.name}}</text><text class="hint">{{item.display}} · {{item.paused ? '已暂停' : '计时中'}}</text></view><view class="timer-actions"><button data-id="{{item.id}}" bindtap="toggleTimer">{{item.paused ? '继续' : '暂停'}}</button><button data-id="{{item.id}}" bindtap="deleteTimer">删除</button></view></view>
         </scroll-view>
       </block>
       <button class="close-sheet" bindtap="closeDialog">关闭</button>

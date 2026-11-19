@@ -3,6 +3,7 @@ var LAN_TEST_VISIBILITY_KEY = 'lan-test-entry-visible-v1';
 Page({
   data: {
     appVersion: '',
+    backupRecoveryFailed: false,
     showLanTest: false,
     update: null,
     updateStatus: 'ready',
@@ -26,7 +27,7 @@ Page({
     else {
       try { var account = wx.getAccountInfoSync && wx.getAccountInfoSync(); version = account && account.miniProgram && account.miniProgram.version || ''; } catch (e) {}
     }
-    this.setData({appVersion:version});
+    this.setData({appVersion:version,backupRecoveryFailed:!!app.backupRecoveryFailed});
     if (app.updater) app.updater.subscribe(function (update) { page.setData({update:update}); });
   },
   onHide: function () { this.resetVersionTaps();var app = getApp(); if (app.updater) app.updater.subscribe(null); },
@@ -60,6 +61,8 @@ Page({
     });
   },
   stopUpdateTap: function () {},
+  retryBackupRecovery:function(){var app=getApp(),ok=app.tryBackupRecovery();this.setData({backupRecoveryFailed:!ok});if(ok&&app.updater)app.updater.check();},
+  openDataBackup:function(){wx.navigateTo({url:'/pages/data-backup/index'});},
   openAnalyzer: function () {
     wx.navigateTo({ url: '/pages/analyzer/index' });
   },

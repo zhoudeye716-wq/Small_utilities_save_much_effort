@@ -225,6 +225,6 @@ function resolveSnapshot(snapshot) {
   } catch (error) { return snapshot; }
 }
 
-module.exports = { read: read, upsert: upsert, preserve: preserve, createSession: createSession,
+module.exports = { read: read, snapshot: load, upsert: upsert, preserve: preserve, createSession: createSession,
   upsertGroup: upsertGroup, deleteGroup: deleteGroup, setPlayerGroup: setPlayerGroup,
   archivePlayer: archivePlayer, resolveSession: resolveSession, resolveSnapshot: resolveSnapshot };

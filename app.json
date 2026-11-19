@@ -18,6 +18,7 @@
     "pages/guess-size/index",
     "pages/perler-list/index",
     "pages/perler-editor/index",
+    "pages/data-backup/index",
     "pages/lan-test/index"
   ],
   "window": {
