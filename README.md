@@ -49,6 +49,13 @@
 
 <p align="center"><strong>拼豆工作台</strong><br /><a href="./docs/screenshots/08-perler-editor.jpg"><img src="./docs/screenshots/08-perler-editor.jpg" alt="拼豆图纸编辑" width="240" /></a></p>
 
+<table>
+  <tr>
+    <td align="center"><strong>座位图编辑</strong><br /><a href="./docs/screenshots/09-seating-editor.jpg"><img src="./docs/screenshots/09-seating-editor.jpg" alt="聚会座位图编辑" width="240" /></a></td>
+    <td align="center"><strong>座位图导出</strong><br /><a href="./docs/screenshots/10-seating-export.jpg"><img src="./docs/screenshots/10-seating-export.jpg" alt="聚会座位图导出预览" width="240" /></a></td>
+  </tr>
+</table>
+
 ### 横屏工具
 
 <p align="center"><strong>线下围坐</strong><br /><a href="./docs/screenshots/03-offline-table.jpg"><img src="./docs/screenshots/03-offline-table.jpg" alt="线下围坐牌桌" width="720" /></a></p>
@@ -56,8 +63,6 @@
 <p align="center"><strong>临时桌牌</strong><br /><a href="./docs/screenshots/05-signboard.jpg"><img src="./docs/screenshots/05-signboard.jpg" alt="临时桌牌与设置" width="720" /></a></p>
 
 <p align="center"><strong>猜大小</strong><br /><a href="./docs/screenshots/07-guess-size.jpg"><img src="./docs/screenshots/07-guess-size.jpg" alt="猜大小游戏界面" width="720" /></a></p>
-
-聚会座位图的编辑与导出截图待补充；截图命名和拍摄建议见 [截图清单](./docs/screenshots/README.md)。
 
 > 本工程根据已发布版本的页面截图和使用说明重新搭建，原始工程和原版决策算法无法完整恢复。
 
