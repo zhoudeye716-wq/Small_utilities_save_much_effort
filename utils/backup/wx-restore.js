@@ -10,10 +10,33 @@ function validBase64(value){
   if(value[end-1]==='=')end--;
   return !/[^A-Za-z0-9+/]/.test(value.slice(0,end));
 }
-function buildChanges(payload,importedKeys,projectsChanged,previousProjects){
+function buildChanges(payload,importedKeys,projectsChanged,previousProjects,previousSeating,previousPresets){
   var changes=[],seenProjects=Object.create(null);
   importedKeys.forEach(function(key){
     if(!allowed[key]||!own(payload.data,key))throw new Error('不允许恢复此数据');
+    if(key==='seatingStylePresetsV1'){
+      var savedPresets=payload.data[key].map(function(record){
+        require('../seating/style-presets').validate(record,true);
+        Object.keys(record.embeddedAssets).forEach(function(ref){changes.push({key:'h:'+ref,value:{encoding:'base64',data:record.embeddedAssets[ref]}});});
+        var old=(previousPresets||[]).find(function(item){return item.id===record.id;});
+        if(old){require('../seating/style-presets').validate(old,true);Object.keys(old.embeddedAssets).forEach(function(ref){if(!own(record.embeddedAssets,ref))changes.push({key:'h:'+ref,remove:true});});}
+        var saved=JSON.parse(JSON.stringify(record));delete saved.embeddedAssets;return saved;
+      });
+      changes.push({key:'s:'+key,value:savedPresets});return;
+    }
+    if(key==='seatingProjectsV1'){
+      var seenSeating=Object.create(null);
+      payload.data[key].forEach(function(project){
+        require('../seating/backup').validate(project);
+        var lower=project.id.toLowerCase();if(seenSeating[lower])throw new Error('座位图编号冲突');seenSeating[lower]=true;
+        Object.keys(project.embeddedAssets).forEach(function(ref){changes.push({key:'g:'+ref,value:{encoding:'base64',data:project.embeddedAssets[ref]}});});
+        var old=(previousSeating||[]).find(function(item){return item.id===project.id;});
+        if(old){require('../seating/backup').validate(old);Object.keys(old.embeddedAssets).forEach(function(ref){if(!Object.prototype.hasOwnProperty.call(project.embeddedAssets,ref))changes.push({key:'g:'+ref,remove:true});});}
+        var saved=JSON.parse(JSON.stringify(project));delete saved.embeddedAssets;
+        changes.push({key:'g:'+project.id+'.json',value:{encoding:'json',data:saved}});
+      });
+      return;
+    }
     changes.push({key:'s:'+key,value:payload.data[key]});
   });
   if(projectsChanged)payload.projects.forEach(function(p){
@@ -42,6 +65,8 @@ function createAdapter(api,fs,root,projectRoot){
   function path(key){
     if(key.slice(0,2)==='s:'&&allowed[key.slice(2)])return null;
     if(key.slice(0,2)==='f:'&&/^[a-zA-Z0-9_-]+\.(json|meta|jpg|jpeg|png|webp)$/.test(key.slice(2)))return projectRoot+'/'+key.slice(2);
+    if(key.slice(0,2)==='g:'&&/^[a-zA-Z0-9_-]+\.(json|jpg|jpeg|png|webp)$/i.test(key.slice(2)))return root+'/seating-projects/'+key.slice(2);
+    if(key.slice(0,2)==='h:'&&/^sp_[a-z0-9_]+-(logo|background)-[a-z0-9_]+\.(jpg|jpeg|png|webp)$/.test(key.slice(2)))return root+'/seating-style-presets/'+key.slice(2);
     throw new Error('不允许恢复此数据');
   }
   function exists(p){try{fs.accessSync(p);return true;}catch(e){if(/ENOENT|not exist|no such file/i.test(e.errMsg||e.message||''))return false;throw e;}}
@@ -52,7 +77,10 @@ function createAdapter(api,fs,root,projectRoot){
     get:function(key){var p=path(key);if(p)return exists(p)?{exists:true,value:{encoding:'base64',data:fs.readFileSync(p,'base64')}}:{exists:false};var k=key.slice(2);return api.getStorageInfoSync().keys.indexOf(k)>=0?{exists:true,value:api.getStorageSync(k)}:{exists:false};},
     put:function(key,value){var p=path(key);if(!p){api.setStorageSync(key.slice(2),value);return;}
       if(!value||typeof value!=='object')throw new Error('文件数据无效');
+      if(key.slice(0,2)==='g:'){try{fs.accessSync(root+'/seating-projects');}catch(error){fs.mkdirSync(root+'/seating-projects',true);}}
+      if(key.slice(0,2)==='h:'){try{fs.accessSync(root+'/seating-style-presets');}catch(error){fs.mkdirSync(root+'/seating-style-presets',true);}}
       if(value.encoding==='project'){var obj=JSON.parse(JSON.stringify(value.data));obj.imagePath=obj.imagePath.replace('@PROJECT_ROOT@',projectRoot);atomic(p,JSON.stringify(obj),'utf8');}
+      else if(value.encoding==='json')atomic(p,JSON.stringify(value.data),'utf8');
       else if(value.encoding==='base64'&&typeof value.data==='string')atomic(p,value.data,'base64');
       else throw new Error('文件数据无效');},
     del:function(key){var p=path(key);if(p){removeFile(p+'.backup-tmp');removeFile(p);}else api.removeStorageSync(key.slice(2));},

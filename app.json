@@ -18,6 +18,9 @@
     "pages/guess-size/index",
     "pages/perler-list/index",
     "pages/perler-editor/index",
+    "pages/seating-list/index",
+    "pages/seating-editor/index",
+    "pages/seating-export/index",
     "pages/data-backup/index",
     "pages/lan-test/index"
   ],

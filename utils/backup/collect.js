@@ -29,7 +29,7 @@ function collect(source, categories, options) {
   selected.forEach(function(category) {
     if (!Object.prototype.hasOwnProperty.call(KEYS, category)) throw new Error('不支持的备份类别');
     KEYS[category].forEach(function(key) {
-      var value = source.get(key);
+      var value = source.get(key,key==='seatingProjectsV1'&&options?options.seatingProjectIds:undefined);
       if (value !== undefined && value !== null && value !== '') result.data[key] = copy(value);
     });
   });

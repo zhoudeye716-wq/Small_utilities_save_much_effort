@@ -6,8 +6,15 @@ global.Page=p=>{definition=p;};
 require('../pages/data-backup/index');
 function page(){const p=Object.assign({},definition);p.data=structuredClone(definition.data);p.setData=function(v){Object.assign(this.data,v);};return p;}
 test('备份默认选择所有用户类别但不包含倒计时',()=>{
-  const p=page();assert.deepEqual(p.data.selected,['mahjong','signboards','poker','guess','perler']);
+  const p=page();assert.deepEqual(p.data.selected,['mahjong','signboards','poker','guess','perler','seating']);
   assert.ok(!p.data.selected.includes('timer'));
+});
+test('座位图可分批选择，未能读取列表时不能导出',()=>{
+  const p=page();p.data.seatingProjects=[{id:'a',checked:true},{id:'b',checked:true}];
+  p.selectSeatingProjects({detail:{value:['b']}});
+  assert.deepEqual(p.data.seatingProjectIds,['b']);assert.equal(p.data.seatingProjects[0].checked,false);
+  let modal;global.wx.showModal=o=>{modal=o;};p.data.perlerEnabled=false;p.data.seatingEnabled=true;p.data.seatingProjectsLoaded=false;p.startExport();
+  assert.match(modal.content,/座位图/);
 });
 test('批量设置冲突后仍可逐条更改',()=>{
   const p=page();p.data.conflicts=[{id:'a'},{id:'b'}];p.chooseAll({currentTarget:{dataset:{choice:'local'}}});
@@ -21,12 +28,12 @@ test('正在验证或恢复时不能更改已确认的冲突选择',()=>{
   p.cancelImport();assert.equal(p.choices.a,'backup');
 });
 test('未设置密码时每次导出都先提醒，取消时不导出',()=>{
-  const p=page();p.data.projectsLoaded=true;let dialog,count=0;global.wx.showModal=o=>{dialog=o;};p.exportNow=()=>count++;
+  const p=page();p.data.projectsLoaded=true;p.data.seatingProjectsLoaded=true;let dialog,count=0;global.wx.showModal=o=>{dialog=o;};p.exportNow=()=>count++;
   p.startExport();assert.equal(count,0);dialog.success({confirm:false});assert.equal(count,0);
   p.startExport();dialog.success({confirm:true});assert.equal(count,1);
 });
 test('加密备份须输入符合规则且一致的密码',()=>{
-  const p=page();p.data.projectsLoaded=true;let dialog,count=0;global.wx.showModal=o=>{dialog=o;};p.exportNow=()=>count++;
+  const p=page();p.data.projectsLoaded=true;p.data.seatingProjectsLoaded=true;let dialog,count=0;global.wx.showModal=o=>{dialog=o;};p.exportNow=()=>count++;
   p.data.encrypted=true;p.data.password='12345';p.data.passwordAgain='12345';p.startExport();assert.match(dialog.content,/6 至 18/);assert.equal(count,0);
   p.data.password='abc123';p.data.passwordAgain='abc124';p.startExport();assert.match(dialog.content,/不一致/);assert.equal(count,0);
   p.data.passwordAgain='abc123';p.startExport();assert.equal(count,1);

@@ -84,6 +84,9 @@ Page({
   openPerler: function () {
     wx.navigateTo({ url: '/pages/perler-list/index' });
   },
+  openSeating: function () {
+    wx.navigateTo({ url: '/pages/seating-list/index' });
+  },
   openLanTest: function () {
     wx.navigateTo({ url: '/pages/lan-test/index' });
   }

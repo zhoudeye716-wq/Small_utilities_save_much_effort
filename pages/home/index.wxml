@@ -46,6 +46,12 @@
       <view class="tool-desc"><view>图片变拼豆图纸</view><view>本机编辑 · 底板对照</view></view>
       <view class="tags"><text>拼豆</text><text>本机</text></view>
     </view>
+    <view class="tool-card active" bindtap="openSeating">
+      <view class="tool-icon seating">◉</view>
+      <view class="tool-name">聚会座位图</view>
+      <view class="tool-desc"><view>自由布置桌椅与场地</view><view>安排人员 · 导出图纸</view></view>
+      <view class="tags"><text>座位</text><text>聚会</text></view>
+    </view>
     <view wx:if="{{showLanTest}}" class="tool-card active" bindtap="openLanTest">
       <view class="tool-icon lan-test">📡</view>
       <view class="tool-name">局域网联机测试</view>

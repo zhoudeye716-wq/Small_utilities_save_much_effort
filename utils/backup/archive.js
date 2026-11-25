@@ -66,6 +66,8 @@ function validateData(data){
     if(!valid||(field.shape==='number'&&!Number.isFinite(value)))throw new Error('备份数据格式无效');
     if(field.shape==='array'){
       if(field.merge==='records'&&!uniqueIds(value))throw new Error('备份记录编号无效或重复');
+      if(key==='seatingProjectsV1'){var seenSeating=Object.create(null);value.forEach(function(project){var lower=project.id.toLowerCase();if(seenSeating[lower])throw new Error('座位图编号冲突');seenSeating[lower]=true;require('../seating/backup').validate(project);});}
+      if(key==='seatingStylePresetsV1')value.forEach(function(record){require('../seating/style-presets').validate(record,true);});
       if(key==='savedSignboards'&&value.some(function(x){return !object(x)||typeof x.id!=='string'||!x.id||(x.config!==undefined&&!object(x.config));}))throw new Error('桌牌记录数据无效');
       if(key==='mahjongSessions'&&value.some(function(s){return !validSession(s);}))throw new Error('麻将记录数据无效');
       return;
@@ -113,7 +115,7 @@ async function pack(payload,options){
   var password=options.password||'',m=manifestUtil.createManifest(options.createdAt||new Date().toISOString(),!!password);
   if(password&&!manifestUtil.validatePassword(password))throw new Error('密码需为 6 至 18 位且不含中文');
   var body=f.strToU8(JSON.stringify(payload));
-  if(!fitsPayload(body.length,!!password))throw new Error('备份内容过大');
+  if(!fitsPayload(body.length,!!password))throw new Error('备份内容过大，请减少选中的项目分批备份；单个项目仍过大时请缩小图片。');
   if(password){
     if(typeof options.random!=='function')throw new Error('无法获取安全随机数');
     var salt=await options.random(16),nonce=await options.random(24);

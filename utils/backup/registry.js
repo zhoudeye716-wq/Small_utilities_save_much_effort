@@ -8,7 +8,8 @@ var categories=[
   {id:'signboards',label:'保存的桌牌',fields:[{key:'savedSignboards',merge:'records',shape:'array'}]},
   {id:'poker',label:'扑克助手、围坐及局域网牌局',fields:[{key:'offlineSettings',merge:'singleton',shape:'object'},{key:'offlineTable',merge:'singleton',shape:'object'},{key:'analyzerSettings',merge:'singleton',shape:'object'},{key:'lanPokerProfileV1',merge:'singleton',shape:'object'},{key:'lanPokerRecentV1',merge:'singleton',shape:'object'}]},
   {id:'guess',label:'猜大小当前对局',fields:[{key:'guess-size-current-v1',merge:'singleton',shape:'object'}]},
-  {id:'perler',label:'拼豆项目、原图与校准比例',fields:[{key:'perler-calibrations-v1',merge:'singleton',shape:'array'}],projects:true}
+  {id:'perler',label:'拼豆项目、原图与校准比例',fields:[{key:'perler-calibrations-v1',merge:'singleton',shape:'array'}],projects:true},
+  {id:'seating',label:'聚会座位图与图片',fields:[{key:'seatingProjectsV1',merge:'records',shape:'array'},{key:'seatingStylePresetsV1',merge:'records',shape:'array'}]}
 ];
 function validate(items){
   var ids=Object.create(null),keys=Object.create(null);

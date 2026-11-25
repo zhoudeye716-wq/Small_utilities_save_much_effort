@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="eyebrow">SEATING PLAN · 本机工作台</view>
+  <view class="heading">聚会座位图</view>
+  <view class="intro">布置场地，安排座位，让每个人都找到自己的位置。</view>
+  <button class="create" bindtap="createProject">＋ 新建座位图</button>
+  <view class="section-title">我的座位图</view>
+  <view wx:if="{{!projects.length}}" class="empty">还没有座位图，创建一个开始布置吧。</view>
+  <view wx:for="{{projects}}" wx:key="id" class="project">
+    <view class="project-main" data-id="{{item.id}}" bindtap="openProject"><view class="project-name">{{item.name}}</view><view class="project-sub">{{item.invalid?'读取失败':'点击继续编辑'}}</view></view>
+    <button class="delete" data-id="{{item.id}}" bindtap="removeProject">删除</button>
+  </view>
+</view>
